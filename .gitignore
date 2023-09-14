@@ -1,6 +1,7 @@
 # Created by https://www.toptal.com/developers/gitignore/api/linux,c,cmake
 # Edit at https://www.toptal.com/developers/gitignore?templates=linux,c,cmake
 
+
 ### C ###
 # Prerequisites
 *.d
