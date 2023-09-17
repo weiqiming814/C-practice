@@ -25,8 +25,8 @@ int main ()
 {
 	int x;
 	int y;
-	enum Color color;
-	enum Turn turn;
+	Color color;
+	Turn turn;
 	
 	init_board();
 	

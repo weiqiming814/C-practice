@@ -29,14 +29,14 @@ enum Color
 	BLANK = 0,
 	BLACK = -1
 };
+typedef enum Color Color;
 
 enum Turn
 {
 	BLACK_TURN = 0,
 	WHITE_TURN = 1
 };
-
-extern int stone_count;
+typedef enum Turn Turn;
 
 void init_stone();
 void get_position(int *x, int *y);

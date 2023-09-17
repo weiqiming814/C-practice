@@ -21,6 +21,9 @@
 #include "stone.h"
 #include "win.h"
 
+extern int stone_count;
+extern int board[BOARD_WIDTH][BOARD_HEIGHT];
+
 int judge_line(int x, int y, int x_step, int y_step)
 {
 	int x1;

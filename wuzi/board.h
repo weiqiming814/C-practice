@@ -26,8 +26,6 @@ extern "C"{
 #define BOARD_WIDTH  19
 #define BOARD_HEIGHT 19
 
-extern int board[BOARD_WIDTH][BOARD_HEIGHT];
-
 void init_board();
 
 #ifdef _cplusplus

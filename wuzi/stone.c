@@ -20,9 +20,10 @@
 #include "board.h"
 #include "stone.h"
 
+Color color;
+Turn turn;
+extern int board[BOARD_WIDTH][BOARD_HEIGHT];
 int stone_count;
-enum Color color;
-enum Turn turn;
 
 void init_stone()
 {
