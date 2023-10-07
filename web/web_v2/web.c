@@ -1,5 +1,5 @@
 /*
- * Description: Get web infomation.
+ * Description: Web client.
  *
  * Copyright (C) 2023 Qiming Wei
  *
@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -71,6 +72,11 @@ URL url_parse(char url[])
 					memcpy(port, url + j, i - j);
 					goto EXIT;
 				}
+				else
+				{
+					memcpy(port, url +j, strlen(url) - j);
+					goto EXIT;
+				}
 			}
 		}
 		else if (url[i] == '/')
@@ -82,7 +88,10 @@ URL url_parse(char url[])
 		}
 	}
 	EXIT:
-	memcpy(path, url + i, strlen(url) - i);
+	if (i != strlen(url))
+	{
+		memcpy(path, url + i, strlen(url) - i);
+	}
 
 	URL u;
 	strcpy(u.host, host);
@@ -141,7 +150,7 @@ int main(int argc, char *argv[])
 {
 	if(argc != 2)
 	{
-		printf("usage: ./web host\n");
+		printf("usage: %s host\n", argv[0]);
 		exit(1);
 	}
 
