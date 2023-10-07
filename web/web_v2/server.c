@@ -24,9 +24,8 @@
 #include <netinet/in.h>
 
 #define MAX_BUFFER 4096
-#define PORT 8000
 
-int main()
+int main(int argc, char *argv[])
 {
 	int server_fd, client_fd;
 	struct sockaddr_in address;
@@ -39,15 +38,28 @@ int main()
 		"</body>\n"
 		"</html>\n";
 
+	FILE * config_file = fopen("config.txt", "r");
+	if (config_file == NULL)
+	{
+		printf("Could not open config file.\n");
+		return -1;
+	}
+
+	int port;
+	fscanf(config_file, "%d", &port);
+	fclose(config_file);
+
+
+
 	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
 	{
 		perror("socket failed");
 		exit(EXIT_FAILURE);
 	}
 
-	address.sin_family = AF_INET;
+	address.sin_family      = AF_INET;
 	address.sin_addr.s_addr = INADDR_ANY;
-	address.sin_port = htons(PORT);
+	address.sin_port        = htons(port);
 
 	if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0)
 	{
@@ -61,9 +73,9 @@ int main()
 		exit(EXIT_FAILURE);
 	}
 
-	printf("Server listening on port %d\n", PORT);
+	printf("Server listening on port %d\n", port);
 
-	while(1)
+	while (1)
 	{
 		printf("\nWaiting for a connection...\n");
 
@@ -79,10 +91,10 @@ int main()
 		write(client_fd, response, strlen(response));
 		close(client_fd);
 		
-		//解决close后的wait_time
+		// 解决close后的wait_time
 		int val = 1;
-		int ret = setsockopt(server_fd,SOL_SOCKET,SO_REUSEADDR,(void *)&val,sizeof(int));
-		if(ret == -1)
+		int ret = setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, (void *)&val, sizeof(int));
+		if (ret == -1)
 		{
 			printf("setsockopt");
 			exit(1);
