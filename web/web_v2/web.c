@@ -46,51 +46,60 @@ URL url_parse(char url[])
 	char host[64] = {0};
 	char path[64] = {0};
 	char protocol[8] = {0};
-	int i;
-	int j;
+	char s1[] = "://";
+	char s2[] = ":";
+	char s3[] = "/";
+	char buffer[4096] = {0};
+	char *p;
 
-	for (i = 0; i < strlen(url); i++)
+	strcpy(buffer, url);
+	p = strstr(buffer, s1);
+	if(p == NULL)
 	{
-		if (url[i] == ':')
-		{
-			memcpy(protocol, url + 0, i);
-			j = i + 3;
-			break;
-		}
+		printf("The URL you entered does not have a protocol part\n");
+		exit(1);
+	}
+	else
+	{
+		memcpy(protocol, buffer, strlen(buffer) - strlen(p));
+		memmove(p, p + 3, strlen(p) - 2);
 	}
 
-	for (i = j; i < strlen(url); i++)
+	strcpy(buffer, p);
+	p = strstr(buffer, s2);
+	if(p == NULL)
 	{
-		if (url[i] == ':')
+		char port = {80};
+
+		p = strstr(buffer, s3);
+		if(p == NULL)
 		{
-			memcpy(host, url + j, i - j);
-			j = i + 1;
-			for (; i < strlen(url); i++)
-			{
-				if (url[i] == '/')
-				{
-					memcpy(port, url + j, i - j);
-					goto EXIT;
-				}
-				else
-				{
-					memcpy(port, url +j, strlen(url) - j);
-					goto EXIT;
-				}
-			}
+			memcpy(host, buffer, strlen(buffer));
 		}
-		else if (url[i] == '/')
+		else
 		{
-			memcpy(host, url + j, i - j);
-			strcpy(port, "80");
-			j = i;
-			goto EXIT;
+			memcpy(host, buffer, strlen(buffer) - strlen(p));
+			memmove(p, p+1, strlen(p));
+			strcpy(path, p);
 		}
 	}
-	EXIT:
-	if (i != strlen(url))
+	else
 	{
-		memcpy(path, url + i, strlen(url) - i);
+		memcpy(host, buffer, strlen(buffer) - strlen(p));
+		memmove(p, p+1, strlen(p));
+
+		strcpy(buffer, p);
+		p = strstr(buffer, s3);
+		if(p == NULL)
+		{
+			memcpy(port, buffer, strlen(buffer));
+		}
+		else
+		{
+			memcpy(port, buffer, strlen(buffer) - strlen(p));
+			memmove(p, p+1, strlen(p));
+			strcpy(path, p);
+		}
 	}
 
 	URL u;
@@ -129,7 +138,7 @@ void get_web_info(URL url)
 	{
 		perr_exit("connect error");
 	}
-
+	printf("%s\n%s\n%s\n%s\n",url.protocol,url.host,url.port,url.path);
 	sprintf(request, "GET %s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\n\r\n", url.path, url.host);
 
 	if (send(sockfd, request, strlen(request), 0) == -1)
