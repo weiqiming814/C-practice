@@ -1,5 +1,5 @@
 /*
- * Description: Web client.
+ * Description: Web server.
  *
  * Copyright (C) 2023 Qiming Wei
  *
@@ -34,6 +34,9 @@ static MY_HTTPD_CONF conf;
 
 int read_config(const char *filename)
 {
+	char line[256];
+	char *p;
+
 	if (filename == NULL)
 	{
 		printf("No file provided.\n");
@@ -47,21 +50,18 @@ int read_config(const char *filename)
 		return -1;
 	}
 
-	char line[256];
-	char *p;
 	while (fgets(line, sizeof(line), config_file))
 	{
-		if ((p = strstr(line, "Port=")) != NULL)
+		char *key = strtok(line, "=");
+		char *value = strtok(NULL, "=");
+
+		if (strcmp(key, "Port") == 0)
 		{
-			memmove(p, p + 5, strlen(p) - 4);
-			int port = atoi(p);
-			conf.port = port;
+			conf.port = atoi(value);
 		}
-		if ((p = strstr(line, "Directory=")) != NULL)
+		else if(strcmp(key, "Directory") == 0)
 		{
-			memmove(p, p + 10, strlen(p) - 9);
-			p[strlen(p)-2] = '\0';
-			strcpy(conf.root_dir, p);
+			strncpy(conf.root_dir, value, strlen(value) - 1);
 		}
 	}
 
@@ -70,7 +70,7 @@ int read_config(const char *filename)
 	return 0;
 }
 
-static void set_server(MY_HTTPD_CONF conf)
+static void start_server(MY_HTTPD_CONF conf)
 {
 	int server_fd, client_fd;
 	struct sockaddr_in address;
@@ -150,8 +150,8 @@ int main(int argc, char *argv[])
 	{
 		return -1;
 	}
-		
-	set_server(conf);
+	
+	start_server(conf);
 
 	return 0;
 }
