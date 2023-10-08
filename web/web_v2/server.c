@@ -25,7 +25,24 @@
 
 #define MAX_BUFFER 4096
 
-int main(int argc, char *argv[])
+static int read_config()
+{
+	int port;
+
+	FILE * config_file = fopen("config.txt", "r");
+	if (config_file == NULL)
+	{
+		printf("Could not open config file.\n");
+		return -1;
+	}
+
+	fscanf(config_file, "%d", &port);
+	fclose(config_file);
+
+	return port;
+}
+
+static void set_server(int port)
 {
 	int server_fd, client_fd;
 	struct sockaddr_in address;
@@ -37,19 +54,6 @@ int main(int argc, char *argv[])
 		"<h1>Hello!</h1>\n"
 		"</body>\n"
 		"</html>\n";
-
-	FILE * config_file = fopen("config.txt", "r");
-	if (config_file == NULL)
-	{
-		printf("Could not open config file.\n");
-		return -1;
-	}
-
-	int port;
-	fscanf(config_file, "%d", &port);
-	fclose(config_file);
-
-
 
 	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
 	{
@@ -90,7 +94,7 @@ int main(int argc, char *argv[])
 
 		write(client_fd, response, strlen(response));
 		close(client_fd);
-		
+
 		// 解决close后的wait_time
 		int val = 1;
 		int ret = setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, (void *)&val, sizeof(int));
@@ -100,6 +104,15 @@ int main(int argc, char *argv[])
 			exit(1);
 		}
 	}
+}
+
+int main(int argc, char *argv[])
+{
+	int port;
+
+	port = read_config();
+		
+	set_server(port);
 
 	return 0;
 }
