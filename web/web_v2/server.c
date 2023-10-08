@@ -1,59 +1,79 @@
-/*
- * Description: Web server.
- *
- * Copyright (C) 2023 Qiming Wei
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define MAX_BUFFER 4096
 
-static int read_config()
-{
+typedef struct _MY_HTTPD_CONF {
 	int port;
+	char root_dir[256];
+} MY_HTTPD_CONF;
 
-	FILE * config_file = fopen("config.txt", "r");
-	if (config_file == NULL)
+static MY_HTTPD_CONF conf;
+
+int read_config(const char *filename)
+{
+	if (filename == NULL)
 	{
-		printf("Could not open config file.\n");
+		printf("No file provided.\n");
 		return -1;
 	}
 
-	fscanf(config_file, "%d", &port);
+	FILE *config_file = fopen(filename, "r");
+	if (config_file == NULL)
+	{
+		printf("No content in config file.\n");
+		return -1;
+	}
+
+	char line[256];
+	char *p;
+	while (fgets(line, sizeof(line), config_file))
+	{
+		if ((p = strstr(line, "Port=")) != NULL)
+		{
+			memmove(p, p + 5, strlen(p) - 4);
+			int port = atoi(p);
+			conf.port = port;
+		}
+		if ((p = strstr(line, "Directory=")) != NULL)
+		{
+			memmove(p, p + 10, strlen(p) - 9);
+			p[strlen(p)-2] = '\0';
+			strcpy(conf.root_dir, p);
+		}
+	}
+
 	fclose(config_file);
 
-	return port;
+	return 0;
 }
 
-static void set_server(int port)
+static void set_server(MY_HTTPD_CONF conf)
 {
 	int server_fd, client_fd;
 	struct sockaddr_in address;
 	int addrlen = sizeof(address);
 	char buffer[MAX_BUFFER] = {0};
-	char response[] = "HTTP/1.1 200 OK\nContent-Type: text/html\n\n"
-		"<html>\n"
-		"<body>\n"
-		"<h1>Hello!</h1>\n"
-		"</body>\n"
-		"</html>\n";
+	char response[MAX_BUFFER] = "HTTP/1.1 200 OK\nContent-Type: text/html\n\n";
+	char index_file[256];
+
+	strcpy(index_file, conf.root_dir);
+	strcat(index_file, "/index.html");
+
+	FILE *file = fopen(index_file, "r");
+	if (file != NULL)
+	{
+		fread(response, 1, MAX_BUFFER - strlen(response), file);
+		fclose(file);
+	}
+	else
+	{
+		strcat(response, "<html><body><h1>404 Not Found</h1></body></html>\n");
+	}
 
 	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
 	{
@@ -63,7 +83,7 @@ static void set_server(int port)
 
 	address.sin_family      = AF_INET;
 	address.sin_addr.s_addr = INADDR_ANY;
-	address.sin_port        = htons(port);
+	address.sin_port        = htons(conf.port);
 
 	if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0)
 	{
@@ -77,7 +97,7 @@ static void set_server(int port)
 		exit(EXIT_FAILURE);
 	}
 
-	printf("Server listening on port %d\n", port);
+	printf("Server listening on port %d\n", conf.port);
 
 	while (1)
 	{
@@ -108,11 +128,12 @@ static void set_server(int port)
 
 int main(int argc, char *argv[])
 {
-	int port;
-
-	port = read_config();
+	if (read_config("myhttpd.conf") != 0)
+	{
+		return -1;
+	}
 		
-	set_server(port);
+	set_server(conf);
 
 	return 0;
 }
