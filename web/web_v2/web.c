@@ -47,65 +47,12 @@ URL url_parse(char url[])
 	char host[64] = {0};
 	char path[64] = {0};
 	char protocol[8] = {0};
-	char s1[] = "://";
-	char s2[] = ":";
-	char s3[] = "/";
 	char buffer[4096] = {0};
 	char *p;
 
 	strcpy(buffer, url);
-	/*p = strstr(buffer, s1);
-	if(p == NULL)
-	{
-		printf("The URL you entered does not have a protocol part\n");
-		exit(1);
-	}
-	else
-	{
-		memcpy(protocol, buffer, strlen(buffer) - strlen(p));
-		memmove(p, p + 3, strlen(p) - 2);
-	}
-
-	strcpy(buffer, p);
-	p = strstr(buffer, s2);
-	if(p == NULL)
-	{
-		strcpy(port, debug_port);
-
-		p = strstr(buffer, s3);
-		if(p == NULL)
-		{
-			memcpy(host, buffer, strlen(buffer));
-		}
-		else
-		{
-			memcpy(host, buffer, strlen(buffer) - strlen(p));
-			memmove(p, p+1, strlen(p));
-			strcpy(path, p);
-		}
-	}
-	else
-	{
-		memcpy(host, buffer, strlen(buffer) - strlen(p));
-		memmove(p, p+1, strlen(p));
-
-		strcpy(buffer, p);
-		p = strstr(buffer, s3);
-		if(p == NULL)
-		{
-			memcpy(port, buffer, strlen(buffer));
-		}
-		else
-		{
-			memcpy(port, buffer, strlen(buffer) - strlen(p));
-			memmove(p, p+1, strlen(p));
-			strcpy(path, p);
-		}
-	}*/
-
-
-	strcpy(buffer, url);
-	if((p = strstr(buffer, "://")) != NULL)
+	
+	if ((p = strstr(buffer, "://")) != NULL)
 	{
 		memcpy(protocol, buffer, strlen(buffer) - strlen(p));
 		memmove(p, p + 3, strlen(p) - 2);
@@ -116,10 +63,9 @@ URL url_parse(char url[])
 		strcpy(protocol, "http");
 	}
 
-	if((p = strstr(buffer, "/")) != NULL)
+	if ((p = strstr (buffer, "/")) != NULL)
 	{
 		memcpy(host, buffer, strlen(buffer) - strlen(p));
-		//memmove(p, p+1, strlen(p));
 		strcpy(path, p);
 	}
 	else
@@ -128,7 +74,7 @@ URL url_parse(char url[])
 		strcpy(path, "/");
 	}
 
-	if((p = strstr(host, ":")) != NULL)
+	if ((p = strstr(host, ":")) != NULL)
 	{
 		memmove(p, p + 1, strlen(p));
 		strcpy(port, p);
@@ -194,7 +140,7 @@ void get_web_info(URL url)
 
 int main(int argc, char *argv[])
 {
-	if(argc != 2)
+	if (argc != 2)
 	{
 		printf("usage: %s host\n", argv[0]);
 		exit(1);
