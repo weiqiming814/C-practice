@@ -42,6 +42,7 @@ static void perr_exit(const char *s)
 
 URL url_parse(char url[])
 {
+	char debug_port[8] = "80";
 	char port[8] = {0};
 	char host[64] = {0};
 	char path[64] = {0};
@@ -53,7 +54,7 @@ URL url_parse(char url[])
 	char *p;
 
 	strcpy(buffer, url);
-	p = strstr(buffer, s1);
+	/*p = strstr(buffer, s1);
 	if(p == NULL)
 	{
 		printf("The URL you entered does not have a protocol part\n");
@@ -69,7 +70,7 @@ URL url_parse(char url[])
 	p = strstr(buffer, s2);
 	if(p == NULL)
 	{
-		char port = {80};
+		strcpy(port, debug_port);
 
 		p = strstr(buffer, s3);
 		if(p == NULL)
@@ -100,8 +101,44 @@ URL url_parse(char url[])
 			memmove(p, p+1, strlen(p));
 			strcpy(path, p);
 		}
+	}*/
+
+
+	strcpy(buffer, url);
+	if((p = strstr(buffer, "://")) != NULL)
+	{
+		memcpy(protocol, buffer, strlen(buffer) - strlen(p));
+		memmove(p, p + 3, strlen(p) - 2);
+		strcpy(buffer, p);
+	}
+	else
+	{
+		strcpy(protocol, "http");
 	}
 
+	if((p = strstr(buffer, "/")) != NULL)
+	{
+		memcpy(host, buffer, strlen(buffer) - strlen(p));
+		//memmove(p, p+1, strlen(p));
+		strcpy(path, p);
+	}
+	else
+	{
+		strcpy(host, buffer);
+		strcpy(path, "/");
+	}
+
+	if((p = strstr(host, ":")) != NULL)
+	{
+		memmove(p, p + 1, strlen(p));
+		strcpy(port, p);
+		host[strlen(host) - strlen(p)] = '\0';
+	}
+	else
+	{
+		strcpy(port, "80");
+	}
+	
 	URL u;
 	strcpy(u.host, host);
 	strcpy(u.port, port);
@@ -138,7 +175,7 @@ void get_web_info(URL url)
 	{
 		perr_exit("connect error");
 	}
-	printf("%s\n%s\n%s\n%s\n",url.protocol,url.host,url.port,url.path);
+	
 	sprintf(request, "GET %s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\n\r\n", url.path, url.host);
 
 	if (send(sockfd, request, strlen(request), 0) == -1)
