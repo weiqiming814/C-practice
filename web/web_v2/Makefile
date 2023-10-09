@@ -1,7 +1,14 @@
-web: web.o
+all: server client
+
+server: server.o
 	gcc $^ -o $@
 
-web.o: web.c
+client: client.o
+	gcc $^ -o $@
+
+server.o: server.c
+
+client.o: client.c
 
 clean:
 	@echo "cleanning project"
