@@ -24,7 +24,7 @@
 #include <string.h>
 #include <sys/wait.h>
 
-#define MAX_BUFFER 4096
+#define MAX_BUFFER 1024
 
 typedef struct _MY_HTTPD_CONF {
 	int port;
@@ -73,20 +73,20 @@ int read_config(const char *filename)
 static char *get_url(const char* request)
 {
 	char buf[MAX_BUFFER] = {0};
-	char *url;
-	url = (char *)malloc(MAX_BUFFER);
+	char *url; //= NULL;
+	url = (char *)malloc(1024);
 
-	strncpy(buf, request, strlen(request));
+	strncpy(buf, request, strlen(request) + 1);
 	strtok(buf, " ");
 	char *url_tmp = strtok(NULL, " ");
-	strncpy(url, url_tmp, strlen(url_tmp));
+	strncpy(url, url_tmp, strlen(url_tmp) + 1);
 
 	if (url[0] == '/' && url[1] == '\0')
 	{
 		strcpy(url, "/index.html");
 	}
 	return url;
-	
+	return NULL;
 }
 
 int file_exist(const char* filename)
@@ -94,9 +94,9 @@ int file_exist(const char* filename)
 	FILE *file;
 	if ((file = fopen(filename, "r")) != NULL)
 	{
+		fclose(file);
 		return 1;
 	}
-	fclose(file);
 	return 0;
 }
 
@@ -104,25 +104,29 @@ static char *get_content_type(const char *url)
 {
 	char *ext;
 	char *content_type;
-	content_type = (char *)malloc(16);
-	ext = strstr(url, ".");
+	ext = strstr(url, ".") + 1;
 
-	if (strcasecmp(ext + 1, "html") == 0)
+	if (strcasecmp(ext, "html") == 0)
 	{
-		strcpy(content_type, "text/html");
+		content_type = "text/html";
 	}
-	else if (strcasecmp(ext + 1, "jpg") == 0)
+	else if (strcasecmp(ext, "jpg") == 0)
 	{
-		strcpy(content_type, "image/jpeg");
+		content_type = "image/jpeg";
 	}
-	else if (strcasecmp(ext + 1, "ico") == 0)
+	else if (strcasecmp(ext, "ico") == 0)
 	{
-		strcpy(content_type, "image/x-icon");
+		content_type = "image/x-icon";
+	}
+	else if (strcasecmp(ext, "cgi") == 0)
+	{
+		content_type = "text/plain";
 	}
 	else
 	{
-		strcpy(content_type, "text/html");
+		content_type = "text/plain";
 	}
+
 	return content_type;
 }
 	
@@ -148,8 +152,7 @@ static char *get_head(const char *request, const char *url)
 	char *head;
 	head = (char *)malloc(MAX_BUFFER);
 	snprintf(index_file, sizeof(index_file), "%s%s", conf.root_dir, url);
-	char *content_type;
-	content_type = get_content_type(url);
+	char *content_type = get_content_type(url);
 	long content_length = get_content_length(index_file);
 	FILE *file = fopen(index_file, "rb");	
 	if (file_exist(index_file))
@@ -166,7 +169,6 @@ static char *get_head(const char *request, const char *url)
 						content_type);
 	}
 	fclose(file);
-	free(content_type);
 	return head;
 }
 
@@ -180,6 +182,43 @@ void do_cat(int fd, FILE *file)
 	}
 }
 
+int is_cgi (char *buf)
+{
+	int len;
+	unsigned int flag = 0;
+	int i = 0, j = 0;
+	char buf1[256] = {0};;
+
+	len = strlen(buf);
+	while (i < len)
+	{
+		if (buf[i] == '.')
+		{
+			flag = 1;
+		}
+		if (flag == 1)
+		{
+			if (buf[i] == ' ' || buf[i] == '\n')
+			{
+				break;
+			}
+			else
+			{
+				buf1[j++] = buf[i];
+			}
+		}
+		i++;
+	}
+	if (strcmp(buf1, ".cgi") == 0)
+	{
+		return 0;
+	}
+	else
+	{
+		return 1;
+	}
+}
+	
 static void start_server(MY_HTTPD_CONF conf)
 {
 	int server_fd, client_fd;
@@ -187,7 +226,7 @@ static void start_server(MY_HTTPD_CONF conf)
 	int addrlen = sizeof(address);
 	char buffer[MAX_BUFFER] = {0};
 
-	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
+	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
 	{
 		perror("socket failed");
 		exit(EXIT_FAILURE);
@@ -240,19 +279,53 @@ static void start_server(MY_HTTPD_CONF conf)
 		
 		char file_name[256];
 		snprintf(file_name, sizeof(file_name), "%s%s", conf.root_dir, url);
-		
 		FILE *file = fopen(file_name, "rb");
-		if (file != NULL)
+		
+		if (is_cgi(url) == 0)
 		{
-			write(client_fd, head, strlen(head));
-			do_cat(client_fd, file);
-			fclose(file);
+			pid_t pid;
+
+			pid = fork();
+			if (pid < 0)
+			{
+				printf("creat fork failed\n");
+			}
+			else if (pid >0)
+			{
+				int stateval;
+				waitpid(pid, &stateval, 0);
+				close(client_fd);
+			}
+			else
+			{
+				int err;
+				char *argv[] = {url, NULL};
+				char *envp[] = {NULL};
+				dup2(client_fd, STDOUT_FILENO);
+				char path[256];
+				snprintf(path, sizeof(path), "%s%s", conf.root_dir, url);
+				err = execve(path, argv, envp);
+				if (err < 0)
+				{
+					printf("executable file failed\n");
+					exit(1);
+				}
+				close(client_fd);
+			}
 		}
 		else
 		{
-			write(client_fd, head, strlen(head));
+			if (file != NULL)
+			{
+				write(client_fd, head, strlen(head));
+				do_cat(client_fd, file);
+				fclose(file);
+			}
+			else
+			{
+				write(client_fd, head, strlen(head));
+			}
 		}
-
 		close(client_fd);
 		free(url);
 		free(head);
