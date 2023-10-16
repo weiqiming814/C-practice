@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/wait.h>
 
 #define MAX_BUFFER 4096
 
@@ -73,20 +74,19 @@ static char *get_url(const char* request)
 {
 	char buf[MAX_BUFFER] = {0};
 	char *url;
+	url = (char *)malloc(MAX_BUFFER);
 
 	strncpy(buf, request, strlen(request));
 	strtok(buf, " ");
-	url = strtok(NULL, " ");
-	char *ret = malloc(strlen(url) + 1);
+	char *url_tmp = strtok(NULL, " ");
+	strncpy(url, url_tmp, strlen(url_tmp));
+
 	if (url[0] == '/' && url[1] == '\0')
 	{
-		strcpy(ret, "/index.html");
+		strcpy(url, "/index.html");
 	}
-	else
-	{
-		strcpy(ret, url);
-	}
-	return ret;
+	return url;
+	
 }
 
 int file_exist(const char* filename)
@@ -100,30 +100,32 @@ int file_exist(const char* filename)
 	return 0;
 }
 
-static char *get_content_type(char *url)
+static char *get_content_type(const char *url)
 {
-	char *ext = strstr(url, ".");
-	char *ret = malloc(strlen(url) + 1);
+	char *ext;
+	char *content_type;
+	content_type = (char *)malloc(16);
+	ext = strstr(url, ".");
 
-	if (strcmp(ext, ".html") == 0)
+	if (strcasecmp(ext + 1, "html") == 0)
 	{
-		strcpy(ret, "text/html");
+		strcpy(content_type, "text/html");
 	}
-	else if (strcmp(ext, ".jpg") == 0)
+	else if (strcasecmp(ext + 1, "jpg") == 0)
 	{
-		strcpy(ret, "image/jpeg");
+		strcpy(content_type, "image/jpeg");
 	}
-	else if (strcmp(ext, "ico") == 0)
+	else if (strcasecmp(ext + 1, "ico") == 0)
 	{
-		strcpy(ret, "image/x-icon");
+		strcpy(content_type, "image/x-icon");
 	}
 	else
 	{
-		strcpy(ret, "text/html");
+		strcpy(content_type, "text/html");
 	}
-	return ret;
+	return content_type;
 }
-
+	
 static long get_content_length(char *filename)
 {
 	FILE *fp = NULL;
@@ -140,15 +142,16 @@ static long get_content_length(char *filename)
 	return file_size;
 }
 
-static char *get_head(char *request)
+static char *get_head(const char *request, const char *url)
 {
 	char index_file[256];
-	char *url = get_url(request);
+	char *head;
+	head = (char *)malloc(MAX_BUFFER);
 	snprintf(index_file, sizeof(index_file), "%s%s", conf.root_dir, url);
-	char *content_type = get_content_type(url);
+	char *content_type;
+	content_type = get_content_type(url);
 	long content_length = get_content_length(index_file);
-	FILE *file = fopen(index_file, "rb");
-	char *head = (char *)malloc(MAX_BUFFER);
+	FILE *file = fopen(index_file, "rb");	
 	if (file_exist(index_file))
 	{
 		snprintf(head, MAX_BUFFER, "HTTP/1.1 200 OK\r\nContent-Type: %s\r\n"
@@ -162,6 +165,8 @@ static char *get_head(char *request)
 						"\r\nrequest file not found\r\n",
 						content_type);
 	}
+	fclose(file);
+	free(content_type);
 	return head;
 }
 
@@ -226,11 +231,13 @@ static void start_server(MY_HTTPD_CONF conf)
 		}
 
 		read(client_fd, buffer, MAX_BUFFER);
-		char *head = get_head(buffer);
+		char *url;
+		url = get_url(buffer);
+		char *head;
+		head = get_head(buffer, url);
 
 		printf("%s\n", buffer);
 		
-		char *url = get_url(buffer);
 		char file_name[256];
 		snprintf(file_name, sizeof(file_name), "%s%s", conf.root_dir, url);
 		
@@ -247,6 +254,7 @@ static void start_server(MY_HTTPD_CONF conf)
 		}
 
 		close(client_fd);
+		free(url);
 		free(head);
 	}
 }
