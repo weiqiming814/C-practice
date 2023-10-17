@@ -17,6 +17,8 @@
  */
 
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <stdio.h>
@@ -223,23 +225,34 @@ int is_cgi (char *buf)
 
 static void do_cat_cgi(int client_fd,const char *url)
 {
+	char path[256];
+	struct stat file_stat;
+	snprintf(path, sizeof(path), "%s%s", conf.root_dir, url);
+	if (stat(path, &file_stat) < 0)
+	{
+		printf("stat erroe\n");
+		exit(1);
+	}
+	if (!(file_stat.st_mode & S_IXUSR) || !(file_stat.st_mode & S_IXGRP) || !(file_stat.st_mode & S_IXOTH))
+	{
+		printf("no executable permission\n");
+		exit(1);
+	}
+
 	pid_t pid = fork();
 	if (pid < 0)
 	{
 		printf("creat fork failed\n");
 		exit(1);
 	}
-	else if (pid >0)
+	else if (pid > 0)
 	{
 		int stateval;
 		waitpid(pid, &stateval, 0);
 	}
 	else
 	{
-		char path[256];
-					
 		dup2(client_fd, STDOUT_FILENO);
-		snprintf(path, sizeof(path), "%s%s", conf.root_dir, url);
 		char *argv[] = {path, NULL};
 		char *envp[] = {NULL};
 
@@ -250,6 +263,7 @@ static void do_cat_cgi(int client_fd,const char *url)
 		}
 	}
 }
+
 
 static void start_server(MY_HTTPD_CONF conf)
 {
