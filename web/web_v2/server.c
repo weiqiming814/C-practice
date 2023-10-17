@@ -73,7 +73,7 @@ int read_config(const char *filename)
 static char *get_url(const char* request)
 {
 	char buf[MAX_BUFFER] = {0};
-	char *url; //= NULL;
+	char *url;
 	url = (char *)malloc(1024);
 
 	strncpy(buf, request, strlen(request) + 1);
@@ -86,7 +86,6 @@ static char *get_url(const char* request)
 		strcpy(url, "/index.html");
 	}
 	return url;
-	return NULL;
 }
 
 int file_exist(const char* filename)
@@ -146,7 +145,7 @@ static long get_content_length(char *filename)
 	return file_size;
 }
 
-static char *get_head(const char *request, const char *url)
+static char *get_head(const char *url)
 {
 	char index_file[256];
 	char *head;
@@ -159,13 +158,16 @@ static char *get_head(const char *request, const char *url)
 	{
 		snprintf(head, MAX_BUFFER, "HTTP/1.1 200 OK\r\nContent-Type: %s\r\n"
 						"Content-Length: %ld\r\n"
+						"Connection: close\r\n"
 						"\r\n",
 						content_type, content_length);
 	}
 	else
 	{
 		snprintf(head, MAX_BUFFER, "HTTP/1.1 404 Not Found\r\nContent-Type: %s\r\n"
-						"\r\nrequest file not found\r\n",
+						"\r\nrequest file not found\r\n"
+						"Connection: close\r\n"
+						"\r\n",
 						content_type);
 	}
 	fclose(file);
@@ -218,7 +220,37 @@ int is_cgi (char *buf)
 		return 1;
 	}
 }
-	
+
+static void do_cat_cgi(int client_fd,const char *url)
+{
+	pid_t pid = fork();
+	if (pid < 0)
+	{
+		printf("creat fork failed\n");
+		exit(1);
+	}
+	else if (pid >0)
+	{
+		int stateval;
+		waitpid(pid, &stateval, 0);
+	}
+	else
+	{
+		char path[256];
+					
+		dup2(client_fd, STDOUT_FILENO);
+		snprintf(path, sizeof(path), "%s%s", conf.root_dir, url);
+		char *argv[] = {path, NULL};
+		char *envp[] = {NULL};
+
+		if (execve(path, argv, envp) < 0)
+		{
+			printf("executable file failed\n");
+			exit(1);
+		}
+	}
+}
+
 static void start_server(MY_HTTPD_CONF conf)
 {
 	int server_fd, client_fd;
@@ -273,59 +305,30 @@ static void start_server(MY_HTTPD_CONF conf)
 		char *url;
 		url = get_url(buffer);
 		char *head;
-		head = get_head(buffer, url);
+		head = get_head(url);
 
 		printf("%s\n", buffer);
 		
 		char file_name[256];
 		snprintf(file_name, sizeof(file_name), "%s%s", conf.root_dir, url);
 		FILE *file = fopen(file_name, "rb");
-		
-		if (is_cgi(url) == 0)
+		if (file != NULL)
 		{
-			pid_t pid;
-
-			pid = fork();
-			if (pid < 0)
+			write(client_fd, head, strlen(head));
+			if (is_cgi(url) == 0)
 			{
-				printf("creat fork failed\n");
-			}
-			else if (pid >0)
-			{
-				int stateval;
-				waitpid(pid, &stateval, 0);
-				close(client_fd);
+				do_cat_cgi(client_fd,url);
 			}
 			else
 			{
-				int err;
-				char *argv[] = {url, NULL};
-				char *envp[] = {NULL};
-				dup2(client_fd, STDOUT_FILENO);
-				char path[256];
-				snprintf(path, sizeof(path), "%s%s", conf.root_dir, url);
-				err = execve(path, argv, envp);
-				if (err < 0)
-				{
-					printf("executable file failed\n");
-					exit(1);
-				}
-				close(client_fd);
+				do_cat(client_fd, file);
 			}
 		}
 		else
 		{
-			if (file != NULL)
-			{
-				write(client_fd, head, strlen(head));
-				do_cat(client_fd, file);
-				fclose(file);
-			}
-			else
-			{
-				write(client_fd, head, strlen(head));
-			}
+			write(client_fd, head, strlen(head));
 		}
+		fclose(file);
 		close(client_fd);
 		free(url);
 		free(head);
