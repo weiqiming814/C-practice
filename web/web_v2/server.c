@@ -75,8 +75,6 @@ int read_config(const char *filename)
 static char *get_url(const char* request)
 {
 	char buf[MAX_BUFFER] = {0};
-	//char *url;
-	//url = (char *)malloc(1024);
 	static char url[MAX_BUFFER] = {0};
 
 	strncpy(buf, request, strlen(request) + 1);
@@ -151,13 +149,11 @@ static long get_content_length(char *filename)
 static char *get_head(const char *url)
 {
 	char index_file[256];
-	//char *head;
-	//head = (char *)malloc(MAX_BUFFER);
 	static char head[MAX_BUFFER] = {0};
 	snprintf(index_file, sizeof(index_file), "%s%s", conf.root_dir, url);
 	char *content_type = get_content_type(url);
 	long content_length = get_content_length(index_file);
-	//FILE *file = fopen(index_file, "rb");	
+
 	if (file_exist(index_file))
 	{
 		snprintf(head, MAX_BUFFER, "HTTP/1.1 200 OK\r\nContent-Type: %s\r\n"
@@ -174,7 +170,7 @@ static char *get_head(const char *url)
 						"\r\n",
 						content_type);
 	}
-	//fclose(file);
+
 	return head;
 }
 
@@ -226,15 +222,10 @@ static void do_cat_cgi(int client_fd,const char *url)
 	}
 	else if (pid > 0)
 	{
-		printf("wait\n");
-		//int stateval;
-		//waitpid(pid, &stateval, 0);
 		waitpid(-1, NULL, WNOHANG);
-		printf("wait end \n");
 	}
 	else
 	{
-		printf("path == %s\n", path);
 		dup2(client_fd, STDOUT_FILENO);
 		dup2(client_fd, STDERR_FILENO);
 		close(client_fd);
@@ -321,15 +312,15 @@ static void start_server(MY_HTTPD_CONF conf)
 			{
 				do_cat(client_fd, file);
 			}
+
+			fclose(file);
 		}
 		else
 		{
 			write(client_fd, head, strlen(head));
 		}
-		fclose(file);
+		
 		close(client_fd);
-		//free(url);
-		//free(head);
 	}
 }
 
