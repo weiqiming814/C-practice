@@ -75,8 +75,9 @@ int read_config(const char *filename)
 static char *get_url(const char* request)
 {
 	char buf[MAX_BUFFER] = {0};
-	char *url;
-	url = (char *)malloc(1024);
+	//char *url;
+	//url = (char *)malloc(1024);
+	static char url[MAX_BUFFER] = {0};
 
 	strncpy(buf, request, strlen(request) + 1);
 	strtok(buf, " ");
@@ -150,12 +151,13 @@ static long get_content_length(char *filename)
 static char *get_head(const char *url)
 {
 	char index_file[256];
-	char *head;
-	head = (char *)malloc(MAX_BUFFER);
+	//char *head;
+	//head = (char *)malloc(MAX_BUFFER);
+	static char head[MAX_BUFFER] = {0};
 	snprintf(index_file, sizeof(index_file), "%s%s", conf.root_dir, url);
 	char *content_type = get_content_type(url);
 	long content_length = get_content_length(index_file);
-	FILE *file = fopen(index_file, "rb");	
+	//FILE *file = fopen(index_file, "rb");	
 	if (file_exist(index_file))
 	{
 		snprintf(head, MAX_BUFFER, "HTTP/1.1 200 OK\r\nContent-Type: %s\r\n"
@@ -172,7 +174,7 @@ static char *get_head(const char *url)
 						"\r\n",
 						content_type);
 	}
-	fclose(file);
+	//fclose(file);
 	return head;
 }
 
@@ -188,31 +190,8 @@ void do_cat(int fd, FILE *file)
 
 int is_cgi (char *buf)
 {
-	int len;
-	unsigned int flag = 0;
-	int i = 0, j = 0;
-	char buf1[256] = {0};;
-
-	len = strlen(buf);
-	while (i < len)
-	{
-		if (buf[i] == '.')
-		{
-			flag = 1;
-		}
-		if (flag == 1)
-		{
-			if (buf[i] == ' ' || buf[i] == '\n')
-			{
-				break;
-			}
-			else
-			{
-				buf1[j++] = buf[i];
-			}
-		}
-		i++;
-	}
+	char *buf1;
+	buf1 = strstr(buf, ".");
 	if (strcmp(buf1, ".cgi") == 0)
 	{
 		return 0;
@@ -247,12 +226,18 @@ static void do_cat_cgi(int client_fd,const char *url)
 	}
 	else if (pid > 0)
 	{
-		int stateval;
-		waitpid(pid, &stateval, 0);
+		printf("wait\n");
+		//int stateval;
+		//waitpid(pid, &stateval, 0);
+		waitpid(-1, NULL, WNOHANG);
+		printf("wait end \n");
 	}
 	else
 	{
+		printf("path == %s\n", path);
 		dup2(client_fd, STDOUT_FILENO);
+		dup2(client_fd, STDERR_FILENO);
+		close(client_fd);
 		char *argv[] = {path, NULL};
 		char *envp[] = {NULL};
 
@@ -263,7 +248,6 @@ static void do_cat_cgi(int client_fd,const char *url)
 		}
 	}
 }
-
 
 static void start_server(MY_HTTPD_CONF conf)
 {
@@ -344,8 +328,8 @@ static void start_server(MY_HTTPD_CONF conf)
 		}
 		fclose(file);
 		close(client_fd);
-		free(url);
-		free(head);
+		//free(url);
+		//free(head);
 	}
 }
 
@@ -356,7 +340,7 @@ int main(int argc, char *argv[])
 	{
 		return -1;
 	}
-	
+
 	start_server(conf);
 
 	return 0;
