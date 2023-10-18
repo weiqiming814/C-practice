@@ -104,8 +104,13 @@ static char *get_content_type(const char *url)
 {
 	char *ext;
 	char *content_type;
-	ext = strstr(url, ".") + 1;
-
+	ext = strstr(url, ".");
+	if (ext == NULL)
+	{
+		content_type = "text/html";
+		return content_type;
+	}
+	ext = ext + 1;
 	if (strcasecmp(ext, "html") == 0)
 	{
 		content_type = "text/html";
@@ -120,7 +125,7 @@ static char *get_content_type(const char *url)
 	}
 	else if (strcasecmp(ext, "cgi") == 0)
 	{
-		content_type = "text/plain";
+		content_type = "text/html";
 	}
 	else
 	{
@@ -146,6 +151,24 @@ static long get_content_length(char *filename)
 	return file_size;
 }
 
+int is_executable (const char *buf)
+{
+	char *buf1;
+	buf1 = strstr(buf, ".");
+	if (buf1 == NULL)
+	{
+		return 0;
+	}
+	if (strcmp(buf1, ".cgi") == 0)
+	{
+		return 0;
+	}
+	else
+	{
+		return 1;
+	}
+}
+
 static char *get_head(const char *url)
 {
 	char index_file[256];
@@ -154,7 +177,14 @@ static char *get_head(const char *url)
 	char *content_type = get_content_type(url);
 	long content_length = get_content_length(index_file);
 
-	if (file_exist(index_file))
+	if (file_exist(index_file) && !is_executable(url))
+	{
+		snprintf(head, MAX_BUFFER, "HTTP/1.1 200 OK\r\nContent-Type: %s\r\n"
+						"Connection: close\r\n"
+						"\r\n",
+						content_type);
+	}
+	else if (file_exist(index_file) && is_executable(url))
 	{
 		snprintf(head, MAX_BUFFER, "HTTP/1.1 200 OK\r\nContent-Type: %s\r\n"
 						"Content-Length: %ld\r\n"
@@ -184,21 +214,7 @@ void do_cat(int fd, FILE *file)
 	}
 }
 
-int is_cgi (char *buf)
-{
-	char *buf1;
-	buf1 = strstr(buf, ".");
-	if (strcmp(buf1, ".cgi") == 0)
-	{
-		return 0;
-	}
-	else
-	{
-		return 1;
-	}
-}
-
-static void do_cat_cgi(int client_fd,const char *url)
+static void do_cat_executable(int client_fd,const char *url)
 {
 	char path[256];
 	struct stat file_stat;
@@ -304,9 +320,9 @@ static void start_server(MY_HTTPD_CONF conf)
 		if (file != NULL)
 		{
 			write(client_fd, head, strlen(head));
-			if (is_cgi(url) == 0)
+			if (!is_executable(url))
 			{
-				do_cat_cgi(client_fd,url);
+				do_cat_executable(client_fd,url);
 			}
 			else
 			{
