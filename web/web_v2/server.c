@@ -256,10 +256,11 @@ static void do_exec(int client_fd, const char *path)
 	}
 }
 
-int set_socket(struct sockaddr_in address, int addrlen, MY_HTTPD_CONF conf)
+static int make_server_socket(int portnum)
 {
 	int server_fd;
-	
+	struct sockaddr_in address;
+
 	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
 	{
 		perror("socket failed");
@@ -296,68 +297,72 @@ int set_socket(struct sockaddr_in address, int addrlen, MY_HTTPD_CONF conf)
 	return server_fd;
 }
 
-void handle_req(int server_fd, struct sockaddr_in address, int addrlen, MY_HTTPD_CONF conf)
+static void process_rq(char *buffer, int client_fd)
+{
+	char *url = get_url(buffer);
+	char *head = get_head(url);
+
+	printf("%s\n", buffer);
+
+	char file_name[256];
+	snprintf(file_name, sizeof(file_name), "%s%s", conf.root_dir, url);
+	FILE *file = fopen(file_name, "rb");
+	if (file != NULL)
+	{
+		write(client_fd, head, strlen(head));
+		if (is_exec(file_name))
+		{
+			do_exec(client_fd, file_name);
+		}
+		else
+		{
+			do_cat(client_fd, file);
+		}
+
+		fclose(file);
+	}
+	else
+	{
+		write(client_fd, head, strlen(head));
+	}
+
+	close(client_fd);
+}
+
+void loop(int fd)
 {
 	int client_fd;
+	struct sockaddr_in address;
+	int addrlen = sizeof(address);
 	char buffer[MAX_BUFFER];
-
+	
 	while (1)
 	{
 		printf("\nWaiting for a connection...\n");
 
-		if ((client_fd = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0)
+		if ((client_fd = accept(fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0)
 		{
 			perror("accept failed");
 			exit(EXIT_FAILURE);
 		}
 
 		read(client_fd, buffer, MAX_BUFFER);
-		char *url = get_url(buffer);
-		char *head = get_head(url);
-
-		printf("%s\n", buffer);
-		
-		char file_name[256];
-		snprintf(file_name, sizeof(file_name), "%s%s", conf.root_dir, url);
-		FILE *file = fopen(file_name, "rb");
-		if (file != NULL)
-		{
-			write(client_fd, head, strlen(head));
-			if (is_exec(file_name))
-			{
-				do_exec(client_fd, file_name);
-			}
-			else
-			{
-				do_cat(client_fd, file);
-			}
-
-			fclose(file);
-		}
-		else
-		{
-			write(client_fd, head, strlen(head));
-		}
-		
-		close(client_fd);
+		process_rq(buffer, client_fd);
 	}
 }
+	
 
 int main(int argc, char *argv[])
 {
 	int server_fd;
-	struct sockaddr_in address;
-	int addrlen = sizeof(address);
-	MY_HTTPD_CONF conf;
 	
 	if (read_config("myhttpd.conf") != 0)
 	{
 		return -1;
 	}
 
-	server_fd = set_socket(address, addrlen, conf);
-
-	handle_req(server_fd, address, addrlen, conf);
+	server_fd = make_server_socket(conf.port);
+	loop(server_fd);
 
 	return 0;
 }
