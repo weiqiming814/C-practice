@@ -41,15 +41,15 @@ int read_config(const char *filename)
 
 	if (filename == NULL)
 	{
-		printf("No file provided.\n");
-		return -1;
+		perror("open file failed");
+		exit(EXIT_FAILURE);
 	}
 
 	FILE *config_file = fopen(filename, "r");
 	if (config_file == NULL)
 	{
-		printf("No content in config file.\n");
-		return -1;
+		perror("file content failed");
+		exit(EXIT_FAILURE);
 	}
 
 	while (fgets(line, sizeof(line), config_file))
@@ -141,8 +141,8 @@ static long get_content_length(char *filename)
 
 	if ((fp = fopen(filename, "r")) == NULL)
 	{
-		printf("获取失败");
-		return -1;
+		perror("get content failed");
+		exit(EXIT_FAILURE);
 	}
 
 	fseek(fp, 0, SEEK_END);
@@ -153,13 +153,13 @@ static long get_content_length(char *filename)
 
 int is_executable (const char *buf)
 {
-	char *buf1;
-	buf1 = strstr(buf, ".");
-	if (buf1 == NULL)
+	char *ext;
+	ext = strstr(buf, ".");
+	if (ext == NULL)
 	{
 		return 0;
 	}
-	if (strcmp(buf1, ".cgi") == 0)
+	if (strcmp(ext, ".cgi") == 0)
 	{
 		return 0;
 	}
@@ -214,27 +214,27 @@ void do_cat(int fd, FILE *file)
 	}
 }
 
-static void do_cat_executable(int client_fd,const char *url)
+static int is_exec(const char *f)
 {
-	char path[256];
-	struct stat file_stat;
-	snprintf(path, sizeof(path), "%s%s", conf.root_dir, url);
-	if (stat(path, &file_stat) < 0)
+	struct stat st;
+
+	if (stat(f, &st) < 0)
 	{
-		printf("stat erroe\n");
-		exit(1);
-	}
-	if (!(file_stat.st_mode & S_IXUSR) || !(file_stat.st_mode & S_IXGRP) || !(file_stat.st_mode & S_IXOTH))
-	{
-		printf("no executable permission\n");
-		exit(1);
+		perror("stat no executable permission");
+		exit(EXIT_FAILURE);
 	}
 
+
+	return st.st_mode & S_IEXEC;
+}
+
+static void do_exec(int client_fd, const char *path)
+{
 	pid_t pid = fork();
 	if (pid < 0)
 	{
-		printf("creat fork failed\n");
-		exit(1);
+		perror("creat pid failed");
+		exit(EXIT_FAILURE);
 	}
 	else if (pid > 0)
 	{
@@ -250,19 +250,16 @@ static void do_cat_executable(int client_fd,const char *url)
 
 		if (execve(path, argv, envp) < 0)
 		{
-			printf("executable file failed\n");
-			exit(1);
+			perror("executable file failed");
+			exit(EXIT_FAILURE);
 		}
 	}
 }
 
-static void start_server(MY_HTTPD_CONF conf)
+int set_socket(struct sockaddr_in address, int addrlen, MY_HTTPD_CONF conf)
 {
-	int server_fd, client_fd;
-	struct sockaddr_in address;
-	int addrlen = sizeof(address);
-	char buffer[MAX_BUFFER] = {0};
-
+	int server_fd;
+	
 	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
 	{
 		perror("socket failed");
@@ -274,8 +271,8 @@ static void start_server(MY_HTTPD_CONF conf)
 	int ret = setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, (void *)&val, sizeof(int));
 	if (ret == -1)
 	{
-		printf("setsockopt");
-		exit(1);
+		perror("setsockopt failed");
+		exit(EXIT_FAILURE);
 	}
 
 	address.sin_family      = AF_INET;
@@ -293,8 +290,16 @@ static void start_server(MY_HTTPD_CONF conf)
 		perror("listen failed");
 		exit(EXIT_FAILURE);
 	}
-
+	
 	printf("Server listening on port %d\n", conf.port);
+
+	return server_fd;
+}
+
+void handle_req(int server_fd, struct sockaddr_in address, int addrlen, MY_HTTPD_CONF conf)
+{
+	int client_fd;
+	char buffer[MAX_BUFFER];
 
 	while (1)
 	{
@@ -307,10 +312,8 @@ static void start_server(MY_HTTPD_CONF conf)
 		}
 
 		read(client_fd, buffer, MAX_BUFFER);
-		char *url;
-		url = get_url(buffer);
-		char *head;
-		head = get_head(url);
+		char *url = get_url(buffer);
+		char *head = get_head(url);
 
 		printf("%s\n", buffer);
 		
@@ -320,9 +323,9 @@ static void start_server(MY_HTTPD_CONF conf)
 		if (file != NULL)
 		{
 			write(client_fd, head, strlen(head));
-			if (!is_executable(url))
+			if (is_exec(file_name))
 			{
-				do_cat_executable(client_fd,url);
+				do_exec(client_fd, file_name);
 			}
 			else
 			{
@@ -340,15 +343,22 @@ static void start_server(MY_HTTPD_CONF conf)
 	}
 }
 
-
 int main(int argc, char *argv[])
 {
+	int server_fd;
+	struct sockaddr_in address;
+	int addrlen = sizeof(address);
+	MY_HTTPD_CONF conf;
+	
 	if (read_config("myhttpd.conf") != 0)
 	{
 		return -1;
 	}
 
-	start_server(conf);
+	server_fd = set_socket(address, addrlen, conf);
+
+	handle_req(server_fd, address, addrlen, conf);
 
 	return 0;
 }
+
