@@ -20,96 +20,85 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include <assert.h>
-
-typedef struct _NUM {
-	char symbol[2];
-	char integer[32];
-	char decimal[32];
-} NUM;
-
-static NUM num;
 
 static void add_sep();
-static void parse_num(char *str);
 
-static bool check_num()
+static void perr_exit(const char *s)
 {
-	char buf[64] = {0};
-	strcpy(buf, num.integer);
-	strcat(buf, num.decimal);
-	for (int i = 0; i < strlen(buf); i++)
+	perror(s);
+	exit(EXIT_FAILURE);
+}
+
+static bool check_num(char *str)
+{
+	int n = 0;
+	int m = 0;
+	
+	if (str[0] == '-')
 	{
-		int tmp = (int)buf[i];
+		n = 1;
+	}
+
+	for (int i = n; i < strlen(str); i++)
+	{
+		if (str[i] == '.')
+		{
+			m++;
+		}
+		if (str[i] == '-' || m > 1)
+		{
+			perr_exit("This number is not legel");
+		}
+		
+		int tmp = (int)str[i];
 		if ((tmp >= 48 && tmp <= 57) || tmp == 46)
 		{
 			continue;
 		}
 		else
 		{
-			perror("This number is not legal");
-			exit(EXIT_FAILURE);
+			perr_exit("This number is not legal");
 		}
 	}
 	return true;
 }
 
-int main()
-{
-	char str[100] = {0};
-	printf("Please enter a number:");
-	scanf("%s",str);
-	parse_num(str);
-	add_sep();
-	printf("\n%s%s%s", num.symbol, num.integer, num.decimal);
-	return 0;
-}
-
-static void parse_num(char *str)
+static int find_decimal(char *str)
 {
 	int n = 0;
-	assert(str != NULL);
-	if (str[0] == '-')
-	{
-		strcpy(num.symbol, "-");
-		memmove(str, str+1, strlen(str));
-	}
-	
 	for (int i = 0; i < strlen(str); i++)
 	{
 		if (str[i] == '.')
 		{
-			n++;
-		}
-		if (str[i] == '-' || n > 1)
-		{
-			perror("This number is not legel");
-			exit(EXIT_FAILURE);
+			n = i;
 		}
 	}
-	
-	strcpy(num.decimal, ".00");
-	if (strstr(str, ".") != NULL)
-	{
-		strcpy(num.integer, strtok(str, "."));
-		memmove(num.decimal + 1, strtok(str, "."), strlen(strtok(NULL, ".")));
-	}
-	else
-	{
-		strcpy(num.integer, str);
-	}
-
-	check_num();
+	return n;
 }
 
-static void add_sep()
+int main()
 {
-	int len = strlen(num.integer);
-	int i = len - 3;
-	for (; i > 0; i -= 3)
+	char str[64] = {0};
+	printf("Please enter a number:");
+	scanf("%s",str);
+	add_sep(str);
+	printf("%s\n", str);
+	return 0;
+}
+
+static void add_sep(char *str)
+{
+	int n = 0;
+	check_num(str);
+	int i = find_decimal(str) - 3;
+	if (str[0] == '-')
 	{
-		memmove(num.integer + i + 1, num.integer + i, strlen(num.integer) - i + 1);
-		num.integer[i] = ',';
+		n = 1;
+	}
+	for (; i > n; i -= 3)
+	{
+		memmove(str + i + 1, str + i, strlen(str) - i + 1);
+		str[i] = ',';
 	}
 }
 
