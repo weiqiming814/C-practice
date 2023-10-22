@@ -22,105 +22,99 @@
 #include <stdlib.h>
 #include <assert.h>
 
-typedef struct _NUM {
-	char symbol[2];
-	char integer[32];
-	char decimal[32];
-} NUM;
-
-static NUM num;
-
-char num1[] = "1234.1234";
-char num2[] = "-1234.1234";
-char num3[] = "1234";
-char num4[] = "123456789.123456";
-
-static void add_sep();
-static void parse_num(char *str);
-
-static bool check_num()
+static void perr_exit(const char *s)
 {
-	char buf[64] = {0};
-	strcpy(buf, num.integer);
-	strcat(buf, num.decimal);
-	for (int i = 0; i < strlen(buf); i++)
+	perror(s);
+	exit(EXIT_FAILURE);
+}
+
+static bool check_num(char *str)
+{
+	int n = 0;
+	int m = 0;
+	
+	if (str[0] == '-')
 	{
-		int tmp = (int)buf[i];
+		n = 1;
+	}
+
+	for (int i = n; i < strlen(str); i++)
+	{
+		if (str[i] == '.')
+		{
+			m++;
+		}
+		if (str[i] == '-' || m > 1)
+		{
+			perr_exit("This number is not legel");
+		}
+		
+		int tmp = (int)str[i];
 		if ((tmp >= 48 && tmp <= 57) || tmp == 46)
 		{
 			continue;
 		}
 		else
 		{
-			perror("This number is not legal");
-			exit(EXIT_FAILURE);
+			perr_exit("This number is not legal");
 		}
 	}
 	return true;
 }
 
-static void test(char *str)
-{
-	printf("Please enter a number:%s\n", str);
-	parse_num(str);
-	add_sep();
-	printf("%s%s%s\n", num.symbol, num.integer, num.decimal);
-}
-
-static void parse_num(char *str)
+static int find_decimal(char *str)
 {
 	int n = 0;
-	assert(str != NULL);
-	if (str[0] == '-')
-	{
-		strcpy(num.symbol, "-");
-		memmove(str, str+1, strlen(str));
-	}
-	
 	for (int i = 0; i < strlen(str); i++)
 	{
 		if (str[i] == '.')
 		{
-			n++;
-		}
-		if (str[i] == '-' || n > 1)
-		{
-			perror("This number is not legel");
-			exit(EXIT_FAILURE);
+			n = i;
 		}
 	}
-	
-	strcpy(num.decimal, ".00");
-	if (strstr(str, ".") != NULL)
-	{
-		strcpy(num.integer, strtok(str, "."));
-		memmove(num.decimal + 1, strtok(str, "."), strlen(strtok(NULL, ".")));
-	}
-	else
-	{
-		strcpy(num.integer, str);
-	}
-
-	check_num();
+	return n;
 }
 
-static void add_sep()
+static void add_sep(char *str)
 {
-	int len = strlen(num.integer);
-	int i = len - 3;
-	for (; i > 0; i -= 3)
+	int n = 0;
+	check_num(str);
+	int i = find_decimal(str) - 3;
+	if (str[0] == '-')
 	{
-		memmove(num.integer + i + 1, num.integer + i, strlen(num.integer) - i + 1);
-		num.integer[i] = ',';
+		n = 1;
 	}
+	for (; i > n; i -= 3)
+	{
+		memmove(str + i + 1, str + i, strlen(str) - i + 1);
+		str[i] = ',';
+	}
+}
+
+char *separator(char *src)
+{
+	char *dest = malloc(strlen(src) + 10);
+	if (!dest)
+	{
+		perr_exit("Cannot allocate memory");
+	}
+	strcpy(dest, src);
+	add_sep(dest);
+	return dest;
+}
+
+bool equal(char *dest, const char *str)
+{
+	bool result = strcmp(dest, str) == 0;
+	free(dest);
+	return result;
 }
 
 int main()
 {
-	test(num1);
-	test(num2);
-	test(num3);
-	test(num4);
+	assert(equal(separator("1234.1234"), "1,234.1234"));
+	assert(equal(separator("-1234.1234"), "-1,234.1234"));
+
 	return 0;
 }
 
