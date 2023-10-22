@@ -1,14 +1,19 @@
-all: thousend_separator
+all: thousend_separator test
 
 CFLAGS= -Wall -g
 server: thousend_separator.o
-	gcc $(CFLAGS) $^ -o $@
+	gcc $(CFLAGS) $^ -Wall -g $@
+
+server: test.o
+	gcc $(CFLAGS) $^ -Wall -g $@
 
 thousend_separator.o: thousend_separator.c
 
+test.o: test.c
+
 clean:
 	@echo "cleanning project"
-	-rm thousend_separator *.o
+	-rm test thousend_separator *.o
 	@echo "clean completed"
 
 .PHONY: clean	
