@@ -23,13 +23,25 @@
 #include <assert.h>
 #include "separator.h"
 
-void perr_exit(const char *s)
+static void perr_exit(const char *s);
+static bool check_num(char *str);
+static int find_decimal(char *str);
+static void add_sep(char *str);
+
+char *separator(char* dest, const char *src)
+{
+	strcpy(dest, src);
+	add_sep(dest);
+	return dest;
+}
+
+static void perr_exit(const char *s)
 {
 	perror(s);
 	exit(EXIT_FAILURE);
 }
 
-bool check_num(char *str)
+static bool check_num(char *str)
 {
 	int n = 0;
 	int m = 0;
@@ -63,7 +75,7 @@ bool check_num(char *str)
 	return true;
 }
 
-int find_decimal(char *str)
+static int find_decimal(char *str)
 {
 	int n = 0;
 	for (int i = 0; i < strlen(str); i++)
@@ -76,7 +88,7 @@ int find_decimal(char *str)
 	return n;
 }
 
-void add_sep(char *str)
+static void add_sep(char *str)
 {
 	int n = 0;
 	check_num(str);
@@ -92,10 +104,4 @@ void add_sep(char *str)
 	}
 }
 
-char *separator(char* dest, const char *src)
-{
-	strcpy(dest, src);
-	add_sep(dest);
-	return dest;
-}
 

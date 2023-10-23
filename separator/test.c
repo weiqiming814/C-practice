@@ -19,8 +19,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
-#include <stdlib.h>
 #include <assert.h>
+
 #include "separator.h"
 
 bool str_equal(const char *s1, const char *s2)
