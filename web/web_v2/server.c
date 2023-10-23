@@ -34,43 +34,10 @@ typedef struct _MY_HTTPD_CONF {
 } MY_HTTPD_CONF;
 
 static MY_HTTPD_CONF conf;
-
-int read_config(const char *filename)
-{
-	char line[256];
-
-	if (filename == NULL)
-	{
-		perror("open file failed");
-		exit(EXIT_FAILURE);
-	}
-
-	FILE *config_file = fopen(filename, "r");
-	if (config_file == NULL)
-	{
-		perror("file content failed");
-		exit(EXIT_FAILURE);
-	}
-
-	while (fgets(line, sizeof(line), config_file))
-	{
-		char *key = strtok(line, "=");
-		char *value = strtok(NULL, "=");
-
-		if (strcmp(key, "Port") == 0)
-		{
-			conf.port = atoi(value);
-		}
-		else if (strcmp(key, "Directory") == 0)
-		{
-			strncpy(conf.root_dir, value, strlen(value) - 1);
-		}
-	}
-
-	fclose(config_file);
-
-	return 0;
-}
+int read_config(const char *filename);
+static void process_rq(char *buffer, int client_fd);
+static void loop(int fd);
+static int make_server_socket(int portnum);
 
 static char *get_url(const char* request)
 {
@@ -102,15 +69,14 @@ int file_exist(const char* filename)
 
 static char *get_content_type(const char *url)
 {
-	char *ext;
 	char *content_type;
-	ext = strstr(url, ".");
+	char *ext = strstr(url, ".") + 1;
 	if (ext == NULL)
 	{
 		content_type = "text/html";
 		return content_type;
 	}
-	ext = ext + 1;
+
 	if (strcasecmp(ext, "html") == 0)
 	{
 		content_type = "text/html";
@@ -153,8 +119,7 @@ static long get_content_length(char *filename)
 
 int is_executable (const char *buf)
 {
-	char *ext;
-	ext = strstr(buf, ".");
+	char *ext = strstr(buf, ".");
 	if (ext == NULL)
 	{
 		return 0;
@@ -256,6 +221,60 @@ static void do_exec(int client_fd, const char *path)
 	}
 }
 
+int main(int argc, char *argv[])
+{
+	int server_fd;
+	
+	if (read_config("myhttpd.conf") != 0)
+	{
+		return -1;
+	}
+
+	server_fd = make_server_socket(conf.port);
+	loop(server_fd);
+
+	return 0;
+}
+
+int read_config(const char *filename)
+{
+	char line[256];
+
+	if (filename == NULL)
+	{
+		perror("open file failed");
+		exit(EXIT_FAILURE);
+	}
+
+	FILE *config_file = fopen(filename, "r");
+	if (config_file == NULL)
+	{
+		perror("file content failed");
+		exit(EXIT_FAILURE);
+	}
+
+	while (fgets(line, sizeof(line), config_file))
+	{
+		char *key = strtok(line, "=");
+		char *value = strtok(NULL, "=");
+
+		if (strcmp(key, "Port") == 0)
+		{
+			conf.port = atoi(value);
+		}
+		else if (strcmp(key, "Directory") == 0)
+		{
+			strncpy(conf.root_dir, value, strlen(value) - 1);
+		}
+	}
+
+	fclose(config_file);
+
+	return 0;
+}
+
+
+
 static int make_server_socket(int portnum)
 {
 	int server_fd;
@@ -329,7 +348,7 @@ static void process_rq(char *buffer, int client_fd)
 	close(client_fd);
 }
 
-void loop(int fd)
+static void loop(int fd)
 {
 	int client_fd;
 	struct sockaddr_in address;
@@ -351,19 +370,4 @@ void loop(int fd)
 	}
 }
 	
-
-int main(int argc, char *argv[])
-{
-	int server_fd;
-	
-	if (read_config("myhttpd.conf") != 0)
-	{
-		return -1;
-	}
-
-	server_fd = make_server_socket(conf.port);
-	loop(server_fd);
-
-	return 0;
-}
 

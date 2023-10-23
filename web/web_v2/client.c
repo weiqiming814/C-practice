@@ -42,7 +42,7 @@ static void perr_exit(const char *s)
 
 URL url_parse(char url[])
 {
-	char debug_port[8] = "80";
+	//char debug_port[8] = "80";
 	char port[8] = {0};
 	char host[64] = {0};
 	char path[64] = {0};

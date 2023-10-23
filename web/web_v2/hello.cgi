@@ -2,7 +2,7 @@
 
 echo "<html>"
 echo "<body>"
-echo "<p> Hello </p>"
+echo "<p> Hello from cgi</p>"
 echo "</body>"
 echo "<html>"
 
