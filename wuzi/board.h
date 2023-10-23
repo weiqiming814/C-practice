@@ -1,5 +1,5 @@
 /*
- *Description:  Head file of board.
+ * Description:  Head file of board.
  *
  * Copyright (C) Qiming Wei
  *

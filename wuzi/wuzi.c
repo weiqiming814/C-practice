@@ -1,5 +1,5 @@
 /*
- *Description:  wuzi game.
+ * Description:  wuzi game.
  *
  * Copyright (C) Qiming Wei
  *

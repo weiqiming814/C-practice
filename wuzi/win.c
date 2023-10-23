@@ -1,5 +1,5 @@
 /*
- *Description:  Judge whether won or not.
+ * Description:  Judge whether won or not.
  *
  * Copyright (C) Qiming Wei
  *

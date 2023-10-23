@@ -1,5 +1,5 @@
 /*
- *Description:  set board.
+ * Description:  set board.
  *
  * Copyright (C) Qiming Wei
  *

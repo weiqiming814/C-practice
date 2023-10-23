@@ -1,5 +1,5 @@
 /*
- *Description:  Head file of stone.
+ * Description:  Head file of stone.
  *
  * Copyright (C) Qiming Wei
  *

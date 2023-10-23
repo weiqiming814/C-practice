@@ -1,5 +1,5 @@
 /*
- *Description:  Head file of win.
+ * Description:  Head file of win.
  *
  * Copyright (C) Qiming Wei
  *

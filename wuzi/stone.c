@@ -1,5 +1,5 @@
 /*
- *Description:  Set stone.
+ * Description:  Set stone.
  *
  * Copyright (C) Qiming Wei
  *
