@@ -1,7 +1,7 @@
 /*
- * Description: Add thousands separator to numbers.
+ * Description:  Head file of thousend separator.
  *
- * Copyright (C) 2023 Qiming Wei
+ * Copyright (C) Qiming Wei
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,29 +16,22 @@
  * limitations under the License.
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <assert.h>
-#include "separator.h"
+#ifndef separator_H
+#define separator_H
 
-bool str_equal(const char *s1, const char *s2)
-{
-	if (strcmp(s1, s2) == 0)
-	{
-		printf("test correct\n");
-	}
+#ifdef _cplusplus
+extern "C"{
+#endif
 
-	return (strcmp(s1, s2) == 0);
+
+void perr_exit(const char *s);
+bool check_num(char *str);
+int find_decimal(char *str);
+void add_sep(char *str);
+char *separator(char *dest, const char *src);
+#ifdef _cplusplus
 }
+#endif
 
-int main()
-{
-	char str[64] = {0};
-	assert(str_equal(separator(str, "1234.1234"), "1,234.1234"));
-	assert(str_equal(separator(str, "-1234.1234"), "-1,234.1234"));
-
-	return 0;
-}
+#endif
 
