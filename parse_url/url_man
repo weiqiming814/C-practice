@@ -1,0 +1,15 @@
+.\" Manpage for url.
+.\" Contact vivek@nixcraft.net.in to correct errors or typos.
+.TH man 8 "24 Oct 2023" "1.0" "url man page"
+.SH NAME
+url \- Parse the path and query string in the URL
+.SH SYNOPSIS
+url [USERNAME]
+.SH OPTIONS
+The nuseradd does not take any options. However, you can supply username.
+.SH SEE ALSO
+useradd(8), passwd(5), nuseradd.debian(8) 
+.SH BUGS
+No known bugs.
+.SH AUTHOR
+Qiming Wei
