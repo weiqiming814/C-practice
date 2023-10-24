@@ -24,13 +24,13 @@
 #define MAX_PARAMS 8
 #define MAX_PARAM_LEN 64
 
-typedef struct _DATA
+typedef struct _url_data_t
 {
 	char path[MAX_PARAM_LEN];
 	char keys[MAX_PARAMS][MAX_PARAM_LEN];
 	char values[MAX_PARAMS][MAX_PARAM_LEN];
 	int count;
-}Data;
+} url_data_t;
 
 bool check_url(const char str[])
 {
@@ -52,13 +52,12 @@ bool check_url(const char str[])
 	return result;
 }
 
-Data parse_url(const char *url)
+url_data_t url_parse(const char *url)
 {
-	Data data;
+	url_data_t data;
 	data.count = 0;
 
-	char *url_copy = malloc(strlen(url) + 1);
-	strcpy(url_copy, url);
+	char *url_copy = strdup(url);
 	
 	char *path = strtok(url_copy, "?");
 	if (path != NULL)
@@ -96,14 +95,22 @@ Data parse_url(const char *url)
 	return data;
 }
 
+#ifdef URL_PARSE_TEST
+
 int main(int argc, char *argv[])
 {
-	if (check_url(argv[1]) == false)
+	if (argc != 2)
 	{
-		return 1;
+		printf("Uage: %s url\n", argv[0]);
+		return -1;
+	}
+	
+	if (!check_url(argv[1]))
+	{
+		return -1;
 	}
 
-	Data data = parse_url(argv[1]);
+	url_data_t data = url_parse(argv[1]);
 
 	printf("Path: %s\n", data.path);
 	for (int i = 0; i < data.count; i++)
@@ -113,4 +120,6 @@ int main(int argc, char *argv[])
 
 	return 0;
 }
+
+#endif /* URL_PARSE_TEST */
 
