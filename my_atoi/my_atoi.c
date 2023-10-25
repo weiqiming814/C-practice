@@ -19,10 +19,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include <assert.h>
 
 #include "my_atoi.h"
-#include <string.h>
 
 static int switch_type(const char *str);
 
@@ -31,7 +29,6 @@ int my_stoi(int num, const char *nptr)
 	num = switch_type(nptr);
 	return num;
 }
-
 
 static int switch_type(const char *str)
 {
