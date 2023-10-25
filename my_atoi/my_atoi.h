@@ -16,14 +16,13 @@
  * limitations under the License.
  */
 
-#ifndef SEPARATOR_H
-#define SEPARATOR_H
+#ifndef MY_ATOI_H
 
 #ifdef _cplusplus
 extern "C"{
 #endif
 
-int my_stoi(int str,const char *nptr);
+int my_atoi(const char *nptr);
 
 #ifdef _cplusplus
 }

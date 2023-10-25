@@ -19,15 +19,17 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <assert.h>
+#include <ctype.h>
 
 #include "my_atoi.h"
 
 static int switch_type(const char *str);
 
-int my_stoi(int num, const char *nptr)
+int my_atoi(const char *nptr)
 {
-	num = switch_type(nptr);
-	return num;
+	assert(nptr != NULL);
+	return switch_type(nptr);
 }
 
 static int switch_type(const char *str)
@@ -35,7 +37,7 @@ static int switch_type(const char *str)
 	int s = 0;
 	bool falg = false;
 
-	while (*str == ' ')
+	while (isspace(*str))
 	{
 		str++;
 	}
@@ -47,7 +49,7 @@ static int switch_type(const char *str)
 		str++;
 	}
 
-	while (*str >= '0' && *str <= '9')
+	while (isdigit(*str))
 	{
 		s = s * 10 + *str - '0';
 		str++;

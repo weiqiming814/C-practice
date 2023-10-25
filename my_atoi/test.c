@@ -35,13 +35,16 @@ bool num_equal(const int n1, const int n2)
 	return ret;
 }
 
-int main()
+int main(void)
 {
-	int num = 0;
 	char *a = "2131314";
 	char *b = "-1234.12";
-	assert(num_equal(my_stoi(num, a), atoi(a)));
-	assert(num_equal(my_stoi(num, b), atoi(b)));
+	char *c = "    -1234.12";
+	char *d = "		-1234.12";
+	assert(num_equal(my_atoi(a), atoi(a)));
+	assert(num_equal(my_atoi(b), atoi(b)));
+	assert(num_equal(my_atoi(c), atoi(c)));
+	assert(num_equal(my_atoi(d), atoi(d)));
 
 	return 0;
 }
