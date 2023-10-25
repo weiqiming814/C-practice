@@ -1,5 +1,5 @@
 /*
- * Description: Add thousands separator to numbers.
+ * Description: test file.
  *
  * Copyright (C) 2023 Qiming Wei
  *

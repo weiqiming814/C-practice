@@ -1,5 +1,5 @@
 /*
- * Description: Add thousands separator to numbers.
+ * Description:  convert a string to an integer.
  *
  * Copyright (C) 2023 Qiming Wei
  *

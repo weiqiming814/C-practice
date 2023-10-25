@@ -1,5 +1,5 @@
 /*
- * Description:  Head file of thousend separator.
+ * Description:  Head file of my_atoi.
  *
  * Copyright (C) Qiming Wei
  *
