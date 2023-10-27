@@ -91,13 +91,14 @@ void get_web_info(char *buf, URL url) {
     servaddr.sin_port = htons(url.port);
     servaddr.sin_addr = *((struct in_addr *) he->h_addr);
 
-    if (connect(sockfd, (struct sockaddr *) &servaddr
-                , sizeof(servaddr)) == -1) {
+    if (connect(sockfd, (struct sockaddr *) &servaddr,
+                sizeof(servaddr)) == -1) {
         perr_exit("connect error");
     }
 
-    snprintf(request, sizeof(request), "GET %s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\n\r\n"
-            , url.path, url.host);
+    snprintf(request, sizeof(request),
+            "GET %s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\n\r\n",
+            url.path, url.host);
 
     if (send(sockfd, request, strlen(request), 0) == -1) {
         perr_exit("send error");
@@ -153,7 +154,9 @@ int main(void) {
     set_protocol(&builder, "http");
     set_host(&builder, "maps.googleapis.com");
     set_port(&builder, 80);
-    set_path(&builder, "/maps/api/directions/json?origin=Chicago,IL&amp;destination=Los+Angeles,CA&amp;waypoints=Joplin,MO");
+    set_path(&builder,
+            "/maps/api/directions/json?origin=Chicago,IL&amp;"
+            "destination=Los+Angeles,CA&amp;waypoints=Joplin,MO");
 
     URL url = build(&builder);
     char buf[MAX_LINE];
