@@ -2,16 +2,14 @@ all: client
 
 CFLAGS= -Wall -g
 
-client: client.o cJSON.o
-	gcc $(CFLAGS) $^ -o $@
+client: client.o
+	gcc $(CFLAGS) $^ -o $@ -lcjson
 
 client.o: client.c
 
-cJSON.o: cJSON.c
-
 clean:
 	@echo "cleanning project"
-	-rm client cJSON *.o
+	-rm client *.o
 	@echo "clean completed"
 
 .PHONY: clean	
