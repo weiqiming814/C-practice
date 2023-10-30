@@ -22,43 +22,37 @@
 #include <assert.h>
 #include <ctype.h>
 
-#include "my_atoi.h"
+#include "my_atoi/my_atoi.h"
 
 static int switch_type(const char *str);
 
-int my_atoi(const char *nptr)
-{
-	assert(nptr != NULL);
-	return switch_type(nptr);
+int my_atoi(const char *nptr) {
+    assert(nptr != NULL);
+    return switch_type(nptr);
 }
 
-static int switch_type(const char *str)
-{
-	int s = 0;
-	bool falg = false;
+static int switch_type(const char *str) {
+    int s = 0;
+    bool falg = false;
 
-	while (isspace(*str))
-	{
-		str++;
-	}
+    while (isspace(*str)) {
+        str++;
+    }
 
-	if (*str == '-' || *str == '+')
-	{
-		if (*str == '-')
-		falg = true;
-		str++;
-	}
+    if (*str == '-' || *str == '+') {
+        if (*str == '-')
+            falg = true;
+        str++;
+    }
 
-	while (isdigit(*str))
-	{
-		s = s * 10 + *str - '0';
-		str++;
-		if (s < 0)
-		{
-			perror("this number overflowed");
-			exit(EXIT_FAILURE);
-		}
-	}
-	return s * (falg?-1:1);
+    while (isdigit(*str)) {
+        s = s * 10 + *str - '0';
+        str++;
+        if (s < 0) {
+            perror("this number overflowed");
+            exit(EXIT_FAILURE);
+        }
+    }
+    return s * (falg?-1:1);
 }
 
