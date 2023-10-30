@@ -27,11 +27,17 @@
 
 #define MAX_LINE 4096
 
+#define URL_PROTOCOL_LEN 8
+
+#define URL_HOST_LEN 64
+
+#define URL_PATH_LEN 128
+
 typedef struct _URL {
-    char protocol[8];
-    char host[64];
-    int  port;
-    char path[128];
+    char protocol[URL_PROTOCOL_LEN];
+    char host[URL_HOST_LEN];
+    int port;
+    char path[URL_PATH_LEN];
 } URL;
 
 URL url_build(char *str[]) {
@@ -65,17 +71,14 @@ void get_web_info(char *buf, URL url) {
 
     bzero(&servaddr, sizeof(servaddr));
     servaddr.sin_family = AF_INET;
-    servaddr.sin_port = htons(url.port);
-    servaddr.sin_addr = *((struct in_addr *) he->h_addr);
+    servaddr.sin_port   = htons(url.port);
+    servaddr.sin_addr   = *((struct in_addr *) he->h_addr);
 
-    if (connect(sockfd, (struct sockaddr *) &servaddr,
-                sizeof(servaddr)) == -1) {
+    if (connect(sockfd, (struct sockaddr *) &servaddr, sizeof(servaddr)) == -1) {
         perr_exit("connect error");
     }
 
-    snprintf(request, sizeof(request),
-            "GET %s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\n\r\n",
-            url.path, url.host);
+    snprintf(request, sizeof(request), "GET %s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\n\r\n", url.path, url.host);
 
     if (send(sockfd, request, strlen(request), 0) == -1) {
         perr_exit("send error");
@@ -86,6 +89,7 @@ void get_web_info(char *buf, URL url) {
     }
 
     char *p = strstr(buf, "{");
+
     strncpy(buf, p, strlen(p));
     buf[strlen(p)] = '\0';
     close(sockfd);
@@ -93,22 +97,23 @@ void get_web_info(char *buf, URL url) {
 
 void json_parse(char *buf) {
     cJSON *cjson = cJSON_Parse(buf);
+
     if (cjson == NULL) {
         printf("parse fail.\n");
         return;
     }
 
     if (cJSON_GetObjectItem(cjson, "message") != NULL) {
-        cJSON *cjson_message = cJSON_GetObjectItem(cjson, "message");
-        cJSON *cjson_nu = cJSON_GetObjectItem(cjson, "nu");
-        cJSON *cjson_ischeck = cJSON_GetObjectItem(cjson, "ischeck");
-        cJSON *cjson_com = cJSON_GetObjectItem(cjson, "com");
-        cJSON *cjson_status = cJSON_GetObjectItem(cjson, "status");
+        cJSON *cjson_message   = cJSON_GetObjectItem(cjson, "message");
+        cJSON *cjson_nu        = cJSON_GetObjectItem(cjson, "nu");
+        cJSON *cjson_ischeck   = cJSON_GetObjectItem(cjson, "ischeck");
+        cJSON *cjson_com       = cJSON_GetObjectItem(cjson, "com");
+        cJSON *cjson_status    = cJSON_GetObjectItem(cjson, "status");
         cJSON *cjson_condition = cJSON_GetObjectItem(cjson, "condition");
-        cJSON *cjson_state = cJSON_GetObjectItem(cjson, "state");
-        cJSON *cjson_data = cJSON_GetObjectItem(cjson, "data");
-        int routes_array_size = cJSON_GetArraySize(cjson_data);
-        cJSON *arr_item = cjson_data->child;
+        cJSON *cjson_state     = cJSON_GetObjectItem(cjson, "state");
+        cJSON *cjson_data      = cJSON_GetObjectItem(cjson, "data");
+        int routes_array_size  = cJSON_GetArraySize(cjson_data);
+        cJSON *arr_item        = cjson_data->child;
 
         printf("message: %s\n", cjson_message->valuestring);
         printf("nu: %s\n", cjson_nu->valuestring);
@@ -130,9 +135,9 @@ void json_parse(char *buf) {
         }
         printf("]\n");
     } else {
-        cJSON *cjson_time = cJSON_GetObjectItem(cjson, "time");
-        cJSON *cjson_context = cJSON_GetObjectItem(cjson, "context");
-        cJSON *cjson_ftime = cJSON_GetObjectItem(cjson, "ftime");
+        cJSON *cjson_time     = cJSON_GetObjectItem(cjson, "time");
+        cJSON *cjson_context  = cJSON_GetObjectItem(cjson, "context");
+        cJSON *cjson_ftime    = cJSON_GetObjectItem(cjson, "ftime");
         cJSON *cjson_location = cJSON_GetObjectItem(cjson, "location");
 
         printf("time: %s\n", cjson_time->valuestring);
@@ -145,6 +150,7 @@ void json_parse(char *buf) {
 
 int main(void) {
     char buf[MAX_LINE];
+
     char *params[] = {"http", "www.kuaidi100.com", "80",
         "/query?type=shentong&postid=773248104204550"};
 

@@ -14,36 +14,44 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * @file stone.h
+ * @brief 五子棋的棋子
+ * @details 细节
+ * @mainpage 工程概览
+ * @author Qiming Wei
+ * @email weiqiming814@gmail.com
+ * @version 1.0
+ * @date 2023-10-30
  */
 
-#ifndef STONE_H
-#define STONE_H
+#ifndef WUZI_STONE_H_
+#define WUZI_STONE_H_
 
 #ifdef _cplusplus
-extern "C"{
+extern "C" {
 #endif
 
-enum Color
-{
-	WHITE = 1,
-	BLANK = 0,
-	BLACK = -1
-};
-typedef enum Color Color;
+    enum Color {
+        WHITE = 1,
+        BLANK = 0,
+        BLACK = -1
+    };
+    typedef enum Color Color;
 
-enum Turn
-{
-	BLACK_TURN = 0,
-	WHITE_TURN = 1
-};
-typedef enum Turn Turn;
+    enum Turn {
+        BLACK_TURN = 0,
+        WHITE_TURN = 1
+    };
+    typedef enum Turn Turn;
 
-void init_stone();
-void get_position(int *x, int *y);
-void set_stone(int x, int y, int coloer);
+    void init_stone();
+    void get_position(int *x, int *y);
+    void set_stone(int x, int y, int coloer);
 
 #ifdef _cplusplus
 }
 #endif
 
-#endif
+#endif  // WUZI_STONE_H_
+

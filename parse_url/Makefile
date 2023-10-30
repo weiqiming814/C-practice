@@ -1,6 +1,6 @@
 all: url
 
-CFLAGS= -Wall -g
+CFLAGS= -Wall -g -DURL_PARSE_TEST
 url: url.o
 	gcc $(CFLAGS) $^ -o $@
 

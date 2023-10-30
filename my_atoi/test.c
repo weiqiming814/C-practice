@@ -23,29 +23,26 @@
 
 #include "my_atoi.h"
 
-bool num_equal(const int n1, const int n2)
-{
-	bool ret = false;
-	ret = n1 == n2;
-	if (ret)
-	{
-		printf("test correct\n");
-	}
+bool num_equal(const int n1, const int n2) {
+    bool ret = false;
+    ret = n1 == n2;
+    if (ret) {
+        printf("test correct\n");
+    }
 
-	return ret;
+    return ret;
 }
 
-int main(void)
-{
-	char *a = "2131314";
-	char *b = "-1234.12";
-	char *c = "    -1234.12";
-	char *d = "		-1234.12";
-	assert(num_equal(my_atoi(a), atoi(a)));
-	assert(num_equal(my_atoi(b), atoi(b)));
-	assert(num_equal(my_atoi(c), atoi(c)));
-	assert(num_equal(my_atoi(d), atoi(d)));
+int main(void) {
+    char *a = "2131314";
+    char *b = "-1234142.12";
+    char *c = "    -1234.12";
+    char *d = "     -1234.12";
+    assert(num_equal(my_atoi(a), atoi(a)));
+    assert(num_equal(my_atoi(b), atoi(b)));
+    assert(num_equal(my_atoi(c), atoi(c)));
+    assert(num_equal(my_atoi(d), atoi(d)));
 
-	return 0;
+    return 0;
 }
 

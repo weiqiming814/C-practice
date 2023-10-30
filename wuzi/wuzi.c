@@ -17,44 +17,36 @@
  */
 
 #include <stdio.h>
-#include "board.h"
-#include "stone.h"
-#include "win.h"
+#include "wuzi/board.h"
+#include "wuzi/stone.h"
+#include "wuzi/win.h"
 
-int main ()
-{
-	int x;
-	int y;
-	Color color;
-	Turn turn;
-	
-	init_board();
-	
-	while (1)
-	{
-		if (color == BLACK_TURN)
-		{
-			color = BLACK;
-		}
-		else
-		{
-			color = WHITE;
-		}
-		
-		get_position(&x, &y);
-		set_stone(x, y, color);
+int main(void) {
+    int x;
+    int y;
+    Color color;
+    Turn turn;
 
-		if (is_win(x, y))
-		{
-			if (turn == BLACK_TURN)
-			{
-				printf("黑子获胜\n");
-			}
-			else
-			{
-				printf("白子获胜\n");
-			}
-			break;
-		}
-	}
+    init_board();
+
+    while (1) {
+        if (color == BLACK_TURN) {
+            color = BLACK;
+        } else {
+            color = WHITE;
+        }
+
+        get_position(&x, &y);
+        set_stone(x, y, color);
+
+        if (is_win(x, y)) {
+            if (turn == BLACK_TURN) {
+                printf("黑子获胜\n");
+            } else {
+                printf("白子获胜\n");
+            }
+            break;
+        }
+    }
 }
+

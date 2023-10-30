@@ -23,25 +23,21 @@
 
 #include "separator.h"
 
-bool str_equal(const char *s1, const char *s2)
-{
+bool str_equal(const char *s1, const char *s2) {
+    bool ret = false;
+    ret = (strcmp(s1, s2) == 0);
+    if (ret) {
+        printf("test correct\n");
+    }
 
-	bool ret = false;
-	ret = (strcmp(s1, s2) == 0);
-	if (ret)
-	{
-		printf("test correct\n");
-	}
-
-	return ret;
+    return ret;
 }
 
-int main()
-{
-	char str[64] = {0};
-	assert(str_equal(separator(str, "1234.1234"), "1,234.1234"));
-	assert(str_equal(separator(str, "-1234.1234"), "-1,234.1234"));
+int main() {
+    char str[64] = {0};
+    assert(str_equal(separator(str, "1234.1234"), "1,234.1234"));
+    assert(str_equal(separator(str, "-1234.1234"), "-1,234.1234"));
 
-	return 0;
+    return 0;
 }
 

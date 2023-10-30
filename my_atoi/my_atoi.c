@@ -22,7 +22,7 @@
 #include <assert.h>
 #include <ctype.h>
 
-#include "my_atoi/my_atoi.h"
+#include "my_atoi.h"
 
 static int switch_type(const char *str);
 

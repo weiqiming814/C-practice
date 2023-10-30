@@ -1,4 +1,4 @@
-/*
+/**
  * Description:  Head file of board.
  *
  * Copyright (C) Qiming Wei
@@ -14,22 +14,32 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * @file board.h
+ * @brief 实现五子棋的棋盘
+ * @details 细节
+ * @mainpage 工程概览
+ * @author Qiming Wei
+ * @email weiqiming814@gmail.com
+ * @version 1.0
+ * @date 2023-10-30
  */
 
-#ifndef BOARD_H
-#define BOARD_H
+#ifndef WUZI_BOARD_H_
+#define WUZI_BOARD_H_
 
 #ifdef _cplusplus
-extern "C"{
+extern "C" {
 #endif
 
 #define BOARD_WIDTH  19
 #define BOARD_HEIGHT 19
 
-void init_board();
+    void init_board();
 
 #ifdef _cplusplus
 }
 #endif
 
-#endif
+#endif  // WUZI_BOARD_H_
+
