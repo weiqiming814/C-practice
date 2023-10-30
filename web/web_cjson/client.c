@@ -34,36 +34,13 @@ typedef struct _URL {
     char path[128];
 } URL;
 
-typedef struct {
-    char protocol[MAX_LINE];
-    char host[MAX_LINE];
-    int port;
-    char path[MAX_LINE];
-} URL_BUILD;
-
-void set_protocol(URL_BUILD * builder, const char *protocol) {
-    strncpy(builder->protocol, protocol, MAX_LINE);
-}
-
-void set_host(URL_BUILD * builder, const char *host) {
-    strncpy(builder->host, host, MAX_LINE);
-}
-
-void set_port(URL_BUILD * builder, int port) {
-    builder->port = port;
-}
-
-void set_path(URL_BUILD * builder, const char *path) {
-    strncpy(builder->path, path, MAX_LINE);
-}
-
-URL build(URL_BUILD * builder) {
+URL url_build(char *str[]) {
     URL url;
 
-    strncpy(url.protocol, builder->protocol, strlen(builder->protocol));
-    strncpy(url.host, builder->host, strlen(builder->host));
-    url.port = builder->port;
-    strncpy(url.path, builder->path, strlen(builder->path));
+    strncpy(url.protocol, str[0], strlen(str[0]));
+    strncpy(url.host, str[1], strlen(str[1]));
+    url.port = atoi(str[2]);
+    strncpy(url.path, str[3], strlen(str[3]));
     return url;
 }
 
@@ -107,62 +84,76 @@ void get_web_info(char *buf, URL url) {
     while ((num = recv(sockfd, buf, MAX_LINE, 0)) > 0) {
         buf[num] = '\0';
     }
-    char *p = strstr(buf, "{");
 
+    char *p = strstr(buf, "{");
     strncpy(buf, p, strlen(p));
     buf[strlen(p)] = '\0';
     close(sockfd);
 }
 
 void json_parse(char *buf) {
-    cJSON *cjson_test = cJSON_Parse(buf);
-
-    if (cjson_test == NULL) {
+    cJSON *cjson = cJSON_Parse(buf);
+    if (cjson == NULL) {
         printf("parse fail.\n");
         return;
     }
 
-    cJSON *cjson_error_message
-        = cJSON_GetObjectItem(cjson_test, "error_message");
-    cJSON *cjson_status
-        = cJSON_GetObjectItem(cjson_test, "status");
-    cJSON *cjson_routes
-        = cJSON_GetObjectItem(cjson_test, "routes");
-    int routes_array_size
-        = cJSON_GetArraySize(cjson_routes);
-    cJSON *arr_item = cjson_routes->child;
+    if (cJSON_GetObjectItem(cjson, "message") != NULL) {
+        cJSON *cjson_message = cJSON_GetObjectItem(cjson, "message");
+        cJSON *cjson_nu = cJSON_GetObjectItem(cjson, "nu");
+        cJSON *cjson_ischeck = cJSON_GetObjectItem(cjson, "ischeck");
+        cJSON *cjson_com = cJSON_GetObjectItem(cjson, "com");
+        cJSON *cjson_status = cJSON_GetObjectItem(cjson, "status");
+        cJSON *cjson_condition = cJSON_GetObjectItem(cjson, "condition");
+        cJSON *cjson_state = cJSON_GetObjectItem(cjson, "state");
+        cJSON *cjson_data = cJSON_GetObjectItem(cjson, "data");
+        int routes_array_size = cJSON_GetArraySize(cjson_data);
+        cJSON *arr_item = cjson_data->child;
 
-    printf("error_message: %s\n", cjson_error_message->valuestring);
-    printf("routes:[ ");
-    for (int i = 0; i <= routes_array_size - 1; i++) {
-        if (routes_array_size == 0) {
-            continue;
-        } else {
-            printf("%s", cJSON_Print(cJSON_GetObjectItem(arr_item, "test_1")));
-            arr_item = arr_item->next;
+        printf("message: %s\n", cjson_message->valuestring);
+        printf("nu: %s\n", cjson_nu->valuestring);
+        printf("ischeck: %s\n", cjson_ischeck->valuestring);
+        printf("com: %s\n", cjson_com->valuestring);
+        printf("status: %s\n", cjson_status->valuestring);
+        printf("condition: %s\n", cjson_condition->valuestring);
+        printf("state: %s\n", cjson_state->valuestring);
+        printf("routes:[ ");
+        for (int i = 0; i <= routes_array_size - 1; i++) {
+            if (routes_array_size == 0) {
+                continue;
+            } else {
+                printf("time:%s\n", cJSON_Print(cJSON_GetObjectItem(arr_item, "time")));
+                printf("context:%s\n", cJSON_Print(cJSON_GetObjectItem(arr_item, "context")));
+                printf("ftime:%s", cJSON_Print(cJSON_GetObjectItem(arr_item, "ftime")));
+                arr_item = arr_item->next;
+            }
         }
-    }
-    printf("\b]\n");
-    printf("status: %s\n", cjson_status->valuestring);
+        printf("]\n");
+    } else {
+        cJSON *cjson_time = cJSON_GetObjectItem(cjson, "time");
+        cJSON *cjson_context = cJSON_GetObjectItem(cjson, "context");
+        cJSON *cjson_ftime = cJSON_GetObjectItem(cjson, "ftime");
+        cJSON *cjson_location = cJSON_GetObjectItem(cjson, "location");
 
-    cJSON_Delete(cjson_test);
+        printf("time: %s\n", cjson_time->valuestring);
+        printf("context: %s\n", cjson_context->valuestring);
+        printf("ftime: %s\n", cjson_ftime->valuestring);
+        printf("location: %s\n", cjson_location->valuestring);
+    }
+    cJSON_Delete(cjson);
 }
 
 int main(void) {
-    URL_BUILD builder;
-
-    set_protocol(&builder, "http");
-    set_host(&builder, "maps.googleapis.com");
-    set_port(&builder, 80);
-    set_path(&builder,
-            "/maps/api/directions/json?origin=Chicago,IL&amp;"
-            "destination=Los+Angeles,CA&amp;waypoints=Joplin,MO");
-
-    URL url = build(&builder);
     char buf[MAX_LINE];
+    char *params[] = {"http", "www.kuaidi100.com", "80",
+        "/query?type=shentong&postid=773248104204550"};
+
+    URL url = url_build(params);
 
     get_web_info(buf, url);
+
     json_parse(buf);
+
     return 0;
 }
 
