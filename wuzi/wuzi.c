@@ -17,9 +17,9 @@
  */
 
 #include <stdio.h>
-#include "wuzi/board.h"
-#include "wuzi/stone.h"
-#include "wuzi/win.h"
+#include "board.h"
+#include "stone.h"
+#include "win.h"
 
 int main(void) {
     int x;

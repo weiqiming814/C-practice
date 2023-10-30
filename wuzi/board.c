@@ -17,8 +17,8 @@
  */
 
 #include <stdio.h>
-#include "wuzi/board.h"
-#include "wuzi/stone.h"
+#include "board.h"
+#include "stone.h"
 
 int board[BOARD_WIDTH][BOARD_HEIGHT];
 

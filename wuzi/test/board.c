@@ -1,5 +1,5 @@
 /*
- *Description:  set board.
+ * Description:  set board.
  *
  * Copyright (C) Qiming Wei
  *
@@ -22,16 +22,14 @@
 
 int board[BOARD_WIDTH][BOARD_HEIGHT];
 
-void init_board()
-{
-	int i;
-	int j;
-	
-	for (i=0; i<BOARD_WIDTH; i++)
-	{
-		for (j=0; j<BOARD_HEIGHT; j++)
-		{
-			board[i][j] = BLANK;
-		}
-	}
+void init_board() {
+    int i = 0;
+    int j = 0;
+
+    for (; i < BOARD_WIDTH; i++) {
+        for (; j < BOARD_HEIGHT; j++) {
+            board[i][j] = BLANK;
+        }
+    }
 }
+

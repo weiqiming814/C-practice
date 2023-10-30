@@ -17,8 +17,8 @@
  */
 
 #include <stdio.h>
-#include "wuzi/board.h"
-#include "wuzi/stone.h"
+#include "board.h"
+#include "stone.h"
 
 Color color;
 Turn turn;

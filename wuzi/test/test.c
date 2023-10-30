@@ -22,96 +22,91 @@
 #include "win.h"
 
 int position_h[][2] = {
-	{1,1},
-	{8,9},
-	{1,2},
-	{8,8},
-	{1,3},
-	{7,7},
-	{1,4},
-	{7,6},
-	{1,5}
+    {1,1},
+    {8,9},
+    {1,2},
+    {8,8},
+    {1,3},
+    {7,7},
+    {1,4},
+    {7,6},
+    {1,5}
 };
+
 int position_v[][2] = {
-	{1,1},
-	{8,9},
-	{2,1},
-	{8,8},
-	{3,1},
-	{7,7},
-	{4,1},
-	{7,6},
-	{5,1}
+    {1,1},
+    {8,9},
+    {2,1},
+    {8,8},
+    {3,1},
+    {7,7},
+    {4,1},
+    {7,6},
+    {5,1}
 };
+
 int position_45[][2] = {
-	{1,1},
-	{8,9},
-	{2,2},
-	{8,8},
-	{3,3},
-	{7,7},
-	{4,4},
-	{7,6},
-	{5,5}
+    {1,1},
+    {8,9},
+    {2,2},
+    {8,8},
+    {3,3},
+    {7,7},
+    {4,4},
+    {7,6},
+    {5,5}
 };
+
 int position_135[][2] = {
-	{5,1},
-	{8,9},
-	{4,2},
-	{8,8},
-	{3,3},
-	{7,7},
-	{2,4},
-	{7,6},
-	{1,5}
+    {5,1},
+    {8,9},
+    {4,2},
+    {8,8},
+    {3,3},
+    {7,7},
+    {2,4},
+    {7,6},
+    {1,5}
 };
 
-void test(int pos[][2], int len){
-	int i =0;
-	int x;
-	int y;
-	int color;
-	int win = 0;
-	printf("position len=%d\n", len);
-	init_board();
-	while (i < len)
-	{
-		if (turn == BLACK_TURN)
-		{
-			color = BLACK;
-		}
-		else
-		{
-			color =WHITE;
-		}
-		x = position_v[i][0];
-		y = position_v[i][1];
+void test(int pos[][2], int len) {
+    int i =0;
+    int x;
+    int y;
+    int color;
+    int win = 0;
+    printf("position len=%d\n", len);
+    init_board();
+    while (i < len) {
+        if (color == BLACK_TURN) {
+            color = BLACK;
+        } else {
+            color =WHITE;
+        }
+        x = position_v[i][0];
+        y = position_v[i][1];
 
-		i++;
-		set_stone(x, y, color);
+        i++;
+        set_stone(x, y, color);
 
-		win = is_win(x, y);
+        win = is_win(x, y);
 
-		if (win)
-		{
-			break;
-		}
-	}
-	if (win)
-	{
-		printf("test OK!\n");
-	}
-	else
-	{
-		printf("test failure!\n");
-	}
+        if (win) {
+            break;
+        }
+    }
+    if (win) {
+        printf("test OK!\n");
+    } else {
+        printf("test failure!\n");
+    }
 }
 
-int main ()
-{
-	test(position_v,sizeof(position_v)/sizeof(position_v[0]));
-	test(position_h,sizeof(position_h)/sizeof(position_h[0]));
-	test(position_45,sizeof(position_45)/sizeof(position_45[0]));
-	test(position_135,sizeof(position_135)/sizeof(position_135[0]));
+int main () {
+    test(position_v,sizeof(position_v)/sizeof(position_v[0]));
+    test(position_h,sizeof(position_h)/sizeof(position_h[0]));
+    test(position_45,sizeof(position_45)/sizeof(position_45[0]));
+    test(position_135,sizeof(position_135)/sizeof(position_135[0]));
 
 }
+

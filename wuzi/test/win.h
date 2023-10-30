@@ -1,5 +1,5 @@
 /*
- *Description:  Head file of win.
+ * Description:  Head file of win.
  *
  * Copyright (C) Qiming Wei
  *
@@ -14,25 +14,30 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * @file win.h
+ * @brief 判断五子棋输赢
+ * @details 细节
+ * @mainpage 工程概览
+ * @author Qiming Wei
+ * @email weiqiming814@gmail.com
+ * @version 1.0
+ * @date 2023-10-30
  */
 
-#ifndef WIN_H
-#define WIN_H
+#ifndef WUZI_TEST_WIN_H_
+#define WUZI_TEST_WIN_H_
 
 #ifdef _cplusplus
-
-extern "C"
-{
-
+extern "C" {
 #endif
 
-extern int judge_line(int x, int y, int x_step, int y_step);
-extern int is_win(int x, int y);
+int judge_line(int x, int y, int x_step, int y_step);
+int is_win(int x, int y);
 
 #ifdef _cplusplus
-
 }
-
 #endif
 
-#endif
+#endif  // WUZI_TEST_WIN_H_
+
