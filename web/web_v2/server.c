@@ -158,6 +158,7 @@ static int is_exec(const char *f) {
         exit(EXIT_FAILURE);
     }
 
+
     return st.st_mode & S_IEXEC;
 }
 
