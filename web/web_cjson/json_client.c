@@ -33,6 +33,11 @@ typedef struct _URL {
     char *path;
 } URL;
 
+typedef struct _LOGIN_DATA {
+    char *account_no;
+    char *password;
+} LOGIN_DATA;
+
 URL url_build(char **params) {
     URL url;
     url.protocol = params[0];
@@ -47,7 +52,7 @@ static void perr_exit(const char *s) {
     exit(1);
 }
 
-void get_web_info(char *receive, char *buf, URL url) {
+void http_post_reqeust(char *resp, char *json_data, URL url) {
     int sockfd;
     struct hostent *he;
     struct sockaddr_in servaddr;
@@ -72,7 +77,7 @@ void get_web_info(char *receive, char *buf, URL url) {
 
     snprintf(request, sizeof(request), "POST %s HTTP/1.1\r\nHost: %s\r\n"
             "Content-Type: application/json\r\nContent-Length: %ld\r\n\r\n%s",
-            url.path, url.host, strlen(buf), buf);
+            url.path, url.host, strlen(json_data), json_data);
 
     if (send(sockfd, request, strlen(request), 0) == -1) {
         perr_exit("send error");
@@ -80,13 +85,13 @@ void get_web_info(char *receive, char *buf, URL url) {
 
     char *p;
     do {
-        if (recv(sockfd, receive, sizeof(request), 0) < 0) {
-        perr_exit("recv error");
+        if (recv(sockfd, resp, sizeof(request), 0) < 0) {
+            perr_exit("recv error");
         }
-        p = strstr(receive, "{");
+        p = strstr(resp, "{");
     } while (p == NULL);
 
-    strncpy(receive, p, strlen(p));
+    strncpy(resp, p, strlen(p));
     request[strlen(p)] = '\0';
     close(sockfd);
 }
@@ -112,19 +117,38 @@ void json_parse(char *buf) {
     cJSON_Delete(cjson);
 }
 
-int main(void) {
-    char buf[MAX_LINE];
-    char receive[MAX_LINE];
-    snprintf(buf, sizeof(buf), "{\"accountNo\":\"%s\",\"password\":\"%s\"}", "your_account_no", "your_password");
+void login_request_data(char* data) {
+    LOGIN_DATA login_data;
+    login_data.account_no = "21313";
+    login_data.password = "31452";
 
+    cJSON *root = cJSON_CreateObject();
+
+    cJSON *item = cJSON_CreateString(login_data.account_no);
+    cJSON_AddItemToObject(root, "accountNo", item);
+
+    item = cJSON_CreateString(login_data.password);
+    cJSON_AddItemToObject(root, "password", item);
+
+    char *output = cJSON_Print(root);
+    strncpy(data, output, strlen(output));
+
+    cJSON_Delete(root);
+    free(output);
+}
+
+int main(void) {
+    char data[MAX_LINE];
+    char response[MAX_LINE];
     char *params[] = {"http", "smart-mapi-test.iboxpay.com", "80",
         "/login/goodabase-gateway/mbox/authorizer/v1/login.json"};
 
     URL url = url_build(params);
+    login_request_data(data);
 
-    get_web_info(receive, buf, url);
+    http_post_reqeust(response, data, url);
 
-    json_parse(receive);
+    json_parse(response);
 
     return 0;
 }
