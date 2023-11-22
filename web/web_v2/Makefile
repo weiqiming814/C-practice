@@ -1,16 +1,11 @@
-all: server client hello
+all: server client
 
 CFLAGS= -Wall -g
 server: server.o
-	gcc $(CFLAGS) $^ -o $@
+	gcc $(CFLAGS) $^ -lzlog -o $@
 
 client: client.o
 	gcc $(CFLAGS) $^ -o $@
-
-hello: hello.o
-	gcc $(CFLAGS) $^ -o $@
-
-hello.o: hello.c
 
 server.o: server.c
 
@@ -18,7 +13,7 @@ client.o: client.c
 
 clean:
 	@echo "cleanning project"
-	-rm server client hello *.o
+	-rm server client *.o
 	@echo "clean completed"
 
 .PHONY: clean	
