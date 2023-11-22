@@ -25,8 +25,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/wait.h>
+#include <zlog.h>
+
+#define LOG_FILE "./zlog.conf"
 
 #define MAX_BUFFER 1024
+
+zlog_category_t *c;
 
 typedef struct _MY_HTTPD_CONF {
     int port;
@@ -38,6 +43,12 @@ int read_config(const char *filename);
 static void process_rq(char *buffer, int client_fd);
 static void loop(int fd);
 static int make_server_socket(int portnum);
+
+static void error_exit(const char *s) {
+    zlog_error(c, "%s", s);
+    zlog_fini();
+    exit(EXIT_FAILURE);
+}
 
 static char *get_url(const char* request) {
     char buf[MAX_BUFFER] = {0};
@@ -90,8 +101,7 @@ static int64_t get_content_length(char *filename) {
     FILE *fp = NULL;
 
     if ((fp = fopen(filename, "r")) == NULL) {
-        perror("get content failed");
-        exit(EXIT_FAILURE);
+        error_exit("get content failed");
     }
 
     fseek(fp, 0, SEEK_END);
@@ -154,19 +164,17 @@ static int is_exec(const char *f) {
     struct stat st;
 
     if (stat(f, &st) < 0) {
-        perror("stat no executable permission");
-        exit(EXIT_FAILURE);
+        error_exit("stat no executable permission");
     }
 
 
     return st.st_mode & S_IEXEC;
 }
 
-static void do_exec(int client_fd, const char *path) {
+static void do_exec(int client_fd, char *path) {
     pid_t pid = fork();
     if (pid < 0) {
-        perror("creat pid failed");
-        exit(EXIT_FAILURE);
+        error_exit("creat pid failed");
     } else if (pid > 0) {
         waitpid(-1, NULL, WNOHANG);
     } else {
@@ -177,21 +185,33 @@ static void do_exec(int client_fd, const char *path) {
         char *envp[] = {NULL};
 
         if (execve(path, argv, envp) < 0) {
-            perror("executable file failed");
-            exit(EXIT_FAILURE);
+            error_exit("executable file failed");
         }
     }
 }
 
 int main(int argc, char *argv[]) {
-    int server_fd;
-
-    if (read_config("myhttpd.conf") != 0) {
+    int rc = zlog_init(LOG_FILE);
+    if (rc) {
+        printf("init failed, please check file %s.\n", LOG_FILE);
         return -1;
     }
 
-    server_fd = make_server_socket(conf.port);
+    c = zlog_get_category("GetIoT");
+    if (!c) {
+        printf("get cat fail\n");
+        zlog_fini();
+        return -2;
+    }
+
+    if (read_config("myhttpd.conf") != 0) {
+        error_exit("Failed to read config file");
+    }
+
+    int server_fd = make_server_socket(conf.port);
     loop(server_fd);
+
+    zlog_fini();
 
     return 0;
 }
@@ -200,14 +220,12 @@ int read_config(const char *filename) {
     char line[256];
 
     if (filename == NULL) {
-        perror("open file failed");
-        exit(EXIT_FAILURE);
+        error_exit("open file failed");
     }
 
     FILE *config_file = fopen(filename, "r");
     if (config_file == NULL) {
-        perror("file content failed");
-        exit(EXIT_FAILURE);
+        error_exit("file content failed");
     }
 
     while (fgets(line, sizeof(line), config_file)) {
@@ -231,16 +249,14 @@ static int make_server_socket(int portnum) {
     struct sockaddr_in address;
 
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-        perror("socket failed");
-        exit(EXIT_FAILURE);
+        error_exit("socket failed");
     }
 
     // 解决close后的wait_time
     int val = 1;
     int ret = setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(int));
     if (ret == -1) {
-        perror("setsockopt failed");
-        exit(EXIT_FAILURE);
+        error_exit("setsockopt failed");
     }
 
     address.sin_family      = AF_INET;
@@ -248,16 +264,14 @@ static int make_server_socket(int portnum) {
     address.sin_port        = htons(conf.port);
 
     if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
-        perror("bind failed");
-        exit(EXIT_FAILURE);
+        error_exit("bind failed");
     }
 
     if (listen(server_fd, 3) < 0) {
-        perror("listen failed");
-        exit(EXIT_FAILURE);
+        error_exit("listen failed");
     }
 
-    printf("Server listening on port %d\n", conf.port);
+    zlog_info(c, "Server listening on port %d\n", conf.port);
 
     return server_fd;
 }
@@ -266,7 +280,7 @@ static void process_rq(char *buffer, int client_fd) {
     char *url = get_url(buffer);
     char *head = get_head(url);
 
-    printf("%s\n", buffer);
+    zlog_info(c, "%s\n", buffer);
 
     char file_name[256];
     snprintf(file_name, sizeof(file_name), "%s%s", conf.root_dir, url);
@@ -294,11 +308,10 @@ static void loop(int fd) {
     char buffer[MAX_BUFFER];
 
     while (1) {
-        printf("\nWaiting for a connection...\n");
+        zlog_info(c, "\nWaiting for a connection...\n");
 
         if ((client_fd = accept(fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0) {
-            perror("accept failed");
-            exit(EXIT_FAILURE);
+            error_exit("accept failed");
         }
 
         read(client_fd, buffer, MAX_BUFFER);
