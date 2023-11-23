@@ -211,28 +211,27 @@ int main(int argc, char *argv[]) {
         error_exit("Failed to read config file");
     }
 
-
-    daemonize();
+    //daemonize();
+    daemon(1, 1);
     loop();
     zlog_fini();
 
     return 0;
 }
 
-void daemonize(void)
-{
+void daemonize(void) {
     pid_t  pid;
 
     if ((pid = fork()) < 0) {
-        perror("fork");
-        exit(1);
-    } else if (pid != 0)
+        error_exit("fork");
+    } else if (pid != 0) {
         exit(0);
+    }
+
     setsid();
 
     if (chdir("./") < 0) {
-        perror("chdir");
-        exit(1);
+        error_exit("chdir");
     }
 
     close(0);
