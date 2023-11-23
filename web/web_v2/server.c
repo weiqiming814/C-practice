@@ -230,7 +230,7 @@ void daemonize(void)
         exit(0);
     setsid();
 
-    if (chdir("/") < 0) {
+    if (chdir("./") < 0) {
         perror("chdir");
         exit(1);
     }
