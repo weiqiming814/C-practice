@@ -25,7 +25,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/wait.h>
+#include <fcntl.h>
 #include <zlog.h>
+#include <signal.h>
 
 #define LOG_FILE "./zlog.conf"
 
@@ -39,9 +41,10 @@ typedef struct _MY_HTTPD_CONF {
 } MY_HTTPD_CONF;
 
 static MY_HTTPD_CONF conf;
+void daemonize(void);
 int read_config(const char *filename);
 static void process_rq(char *buffer, int client_fd);
-static void loop(int fd);
+static void loop(void);
 static int make_server_socket(int portnum);
 
 static void error_exit(const char *s) {
@@ -208,12 +211,34 @@ int main(int argc, char *argv[]) {
         error_exit("Failed to read config file");
     }
 
-    int server_fd = make_server_socket(conf.port);
-    loop(server_fd);
 
+    daemonize();
+    loop();
     zlog_fini();
 
     return 0;
+}
+
+void daemonize(void)
+{
+    pid_t  pid;
+
+    if ((pid = fork()) < 0) {
+        perror("fork");
+        exit(1);
+    } else if (pid != 0)
+        exit(0);
+    setsid();
+
+    if (chdir("/") < 0) {
+        perror("chdir");
+        exit(1);
+    }
+
+    close(0);
+    open("/dev/null", O_RDWR);
+    dup2(0, 1);
+    dup2(0, 2);
 }
 
 int read_config(const char *filename) {
@@ -301,12 +326,12 @@ static void process_rq(char *buffer, int client_fd) {
     close(client_fd);
 }
 
-static void loop(int fd) {
+static void loop(void) {
     int client_fd;
     struct sockaddr_in address;
     int addrlen = sizeof(address);
     char buffer[MAX_BUFFER];
-
+    int fd = make_server_socket(conf.port);
     while (1) {
         zlog_info(c, "\nWaiting for a connection...\n");
 
