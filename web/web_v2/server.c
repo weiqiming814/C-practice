@@ -28,6 +28,7 @@
 #include <fcntl.h>
 #include <zlog.h>
 #include <signal.h>
+#include <arpa/inet.h>
 
 #define LOG_FILE "./zlog.conf"
 
@@ -43,7 +44,7 @@ typedef struct _MY_HTTPD_CONF {
 static MY_HTTPD_CONF conf;
 void daemonize(void);
 int read_config(const char *filename);
-static void process_rq(char *buffer, int client_fd);
+static void process_rq(char *buffer, int client_fd, char *client_ip);
 static void loop(void);
 static int make_server_socket(int portnum);
 
@@ -153,6 +154,14 @@ static char *get_head(const char *url) {
     }
 
     return head;
+}
+
+static char *get_code(const char *head) {
+    char head_content[256] = {0};
+    snprintf(head_content, sizeof(head_content), "%s", head);
+    char *token = strtok(head_content, " ");
+    token = strtok(NULL, " ");
+    return token;
 }
 
 void do_cat(int fd, FILE *file) {
@@ -295,16 +304,29 @@ static int make_server_socket(int portnum) {
         error_exit("listen failed");
     }
 
-    zlog_info(c, "Server listening on port %d\n", conf.port);
+    zlog_info(c, "Server listening on port %d", conf.port);
 
     return server_fd;
 }
 
-static void process_rq(char *buffer, int client_fd) {
+static void process_rq(char *buffer, int client_fd, char *client_ip) {
     char *url = get_url(buffer);
     char *head = get_head(url);
+    char *code = get_code(head);
 
-    zlog_info(c, "%s\n", buffer);
+    char *code_copy = strdup(code);
+    zlog_put_mdc("code", code_copy);
+    char *client_ip_copy = strdup(client_ip);
+    zlog_put_mdc("ip", client_ip_copy);
+    zlog_put_mdc("url", url);
+
+    zlog_info(c, "%s", buffer);
+
+    zlog_remove_mdc("ip");
+    zlog_remove_mdc("url");
+    zlog_remove_mdc("code");
+    free(code_copy);
+    free(client_ip_copy);
 
     char file_name[256];
     snprintf(file_name, sizeof(file_name), "%s%s", conf.root_dir, url);
@@ -332,14 +354,15 @@ static void loop(void) {
     char buffer[MAX_BUFFER];
     int fd = make_server_socket(conf.port);
     while (1) {
-        zlog_info(c, "\nWaiting for a connection...\n");
+        zlog_info(c, "Waiting for a connection..");
 
         if ((client_fd = accept(fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0) {
             error_exit("accept failed");
         }
 
+        char *client_ip = inet_ntoa(address.sin_addr);
         read(client_fd, buffer, MAX_BUFFER);
-        process_rq(buffer, client_fd);
+        process_rq(buffer, client_fd, client_ip);
     }
 }
 
