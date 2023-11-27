@@ -17,24 +17,14 @@
  */
 
 #include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/wait.h>
 #include <fcntl.h>
-#include <zlog.h>
-#include <signal.h>
+#include <string.h>
+#include <stdlib.h>
 #include <arpa/inet.h>
-
-#define LOG_FILE "./zlog.conf"
+#include <zlog.h>
+#include "common.h"
 
 #define MAX_BUFFER 1024
-
-zlog_category_t *c;
 
 typedef struct _MY_HTTPD_CONF {
     int port;
@@ -48,11 +38,6 @@ static void process_rq(char *buffer, int client_fd, char *client_ip);
 static void loop(void);
 static int make_server_socket(int portnum);
 
-static void error_exit(const char *s) {
-    zlog_error(c, "%s", s);
-    zlog_fini();
-    exit(EXIT_FAILURE);
-}
 
 static char *get_url(const char* request) {
     char buf[MAX_BUFFER] = {0};
@@ -68,16 +53,6 @@ static char *get_url(const char* request) {
     }
     return url;
 }
-
-int file_exist(const char* filename) {
-    FILE *file;
-    if ((file = fopen(filename, "r")) != NULL) {
-        fclose(file);
-        return 1;
-    }
-    return 0;
-}
-
 static char *get_content_type(const char *url) {
     char *content_type;
     char *ext = strstr(url, ".") + 1;
@@ -112,19 +87,6 @@ static int64_t get_content_length(char *filename) {
     int64_t file_size = ftell(fp);
     fclose(fp);
     return file_size;
-}
-
-int is_executable(const char *buf) {
-    char *ext = strstr(buf, ".");
-    if (ext == NULL) {
-        return 0;
-    }
-
-    if (strcmp(ext, ".cgi") == 0) {
-        return 0;
-    } else {
-        return 1;
-    }
 }
 
 static char *get_head(const char *url) {
@@ -164,64 +126,18 @@ static char *get_code(const char *head) {
     return token;
 }
 
-void do_cat(int fd, FILE *file) {
-    int c;
-
-    while ((c = getc(file)) != EOF) {
-        write(fd, &c, 1);
-    }
-}
-
-static int is_exec(const char *f) {
-    struct stat st;
-
-    if (stat(f, &st) < 0) {
-        error_exit("stat no executable permission");
-    }
-
-
-    return st.st_mode & S_IEXEC;
-}
-
-static void do_exec(int client_fd, char *path) {
-    pid_t pid = fork();
-    if (pid < 0) {
-        error_exit("creat pid failed");
-    } else if (pid > 0) {
-        waitpid(-1, NULL, WNOHANG);
-    } else {
-        dup2(client_fd, STDOUT_FILENO);
-        dup2(client_fd, STDERR_FILENO);
-        close(client_fd);
-        char *argv[] = {path, NULL};
-        char *envp[] = {NULL};
-
-        if (execve(path, argv, envp) < 0) {
-            error_exit("executable file failed");
-        }
-    }
-}
-
 int main(int argc, char *argv[]) {
-    int rc = zlog_init(LOG_FILE);
-    if (rc) {
-        printf("init failed, please check file %s.\n", LOG_FILE);
-        return -1;
-    }
-
-    c = zlog_get_category("GetIoT");
-    if (!c) {
-        printf("get cat fail\n");
-        zlog_fini();
-        return -2;
-    }
-
+    init_zlog();
     if (read_config("myhttpd.conf") != 0) {
         error_exit("Failed to read config file");
     }
 
-    //daemonize();
+#ifdef USE_DEAMON
     daemon(1, 1);
+#else
+    daemonize();
+#endif
+
     loop();
     zlog_fini();
 
@@ -304,7 +220,7 @@ static int make_server_socket(int portnum) {
         error_exit("listen failed");
     }
 
-    zlog_info(c, "Server listening on port %d", conf.port);
+    zlog_print("Server listening on port %d", conf.port);
 
     return server_fd;
 }
@@ -320,11 +236,12 @@ static void process_rq(char *buffer, int client_fd, char *client_ip) {
     zlog_put_mdc("ip", client_ip_copy);
     zlog_put_mdc("url", url);
 
-    zlog_info(c, "%s", buffer);
+    zlog_print("%s", buffer);
 
     zlog_remove_mdc("ip");
     zlog_remove_mdc("url");
     zlog_remove_mdc("code");
+
     free(code_copy);
     free(client_ip_copy);
 
@@ -354,7 +271,7 @@ static void loop(void) {
     char buffer[MAX_BUFFER];
     int fd = make_server_socket(conf.port);
     while (1) {
-        zlog_info(c, "Waiting for a connection..");
+        zlog_print("Waiting for a connection..");
 
         if ((client_fd = accept(fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0) {
             error_exit("accept failed");
