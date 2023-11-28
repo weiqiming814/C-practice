@@ -1,5 +1,5 @@
 /*
- * Description:  set board.
+ * Description:  common function.
  *
  * Copyright (C) Qiming Wei
  *

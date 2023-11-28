@@ -15,8 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @file board.h
- * @brief 实现五子棋的棋盘
+ * @file common.h
+ * @brief 通用函数
  * @details 细节
  * @mainpage 工程概览
  * @author Qiming Wei
@@ -34,14 +34,14 @@ extern "C" {
 
 #define LOG_FILE "./zlog.conf"
 
-    void zlog_print(const char* format, ...);
-    void init_zlog();
-    void error_exit(const char *s);
-    int file_exist(const char* filename);
-    int is_executable(const char *buf);
-    void do_cat(int fd, FILE *file);
-    int is_exec(const char *f);
-    void do_exec(int client_fd, char *path);
+void zlog_print(const char* format, ...);
+void init_zlog();
+void error_exit(const char *s);
+int file_exist(const char* filename);
+int is_executable(const char *buf);
+void do_cat(int fd, FILE *file);
+int is_exec(const char *f);
+void do_exec(int client_fd, char *path);
 
 #ifdef _cplusplus
 }
