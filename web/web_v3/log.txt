@@ -1,0 +1,118 @@
+ - - [2023-12-05 01:51:50.12s] Server listening on port 8080  
+ - - [2023-12-05 01:51:50.12s] Waiting for a connection..  
+127.0.0.1 - - [2023-12-05 01:51:53.12s] GET / HTTP/1.1
+Host: localhost
+Connection: close
+
+ /index.html |Íê˙˙
+ - - [2023-12-05 01:51:53.12s] Waiting for a connection..  
+ - - [2023-12-05 01:52:40.12s] Server listening on port 8080  
+ - - [2023-12-05 01:52:40.12s] Waiting for a connection..  
+127.0.0.1 - - [2023-12-05 01:52:45.12s] GET /hello.cgi HTTP/1.1
+Host: localhost
+Connection: close
+
+ /hello.cgi ¸ıs……
+ - - [2023-12-05 01:52:45.12s] Waiting for a connection..  
+127.0.0.1 - - [2023-12-05 01:52:49.12s] GET /hello.cgi HTTP/1.1
+Host: localhost
+Connection: close
+
+ /hello.cgi 200
+ - - [2023-12-05 01:52:49.12s] Waiting for a connection..  
+127.0.0.1 - - [2023-12-05 01:52:53.12s] GET / HTTP/1.1
+Host: localhost
+Connection: close
+
+close
+
+ /index.html 200
+ - - [2023-12-05 01:52:53.12s] Waiting for a connection..  
+ - - [2023-12-05 02:27:43.12s] Server listening on port 8080  
+ - - [2023-12-05 02:27:43.12s] Waiting for a connection..  
+127.0.0.1 - - [2023-12-05 02:27:59.12s] GET /hello.cgi HTTP/1.1
+Host: localhost
+Connection: close
+
+ /hello.cgi <H*
+ - - [2023-12-05 02:27:59.12s] Waiting for a connection..  
+ - - [2023-12-05 02:50:24.12s] Server listening on port 8080  
+ - - [2023-12-05 02:50:24.12s] Waiting for a connection..  
+ - - [2023-12-05 02:54:51.12s] Server listening on port 8080  
+ - - [2023-12-05 02:54:51.12s] Waiting for a connection..  
+ - - [2023-12-05 02:55:20.12s] Server listening on port 8080  
+ - - [2023-12-05 02:55:20.12s] Waiting for a connection..  
+ - - [2023-12-05 02:55:40.12s] Server listening on port 8080  
+ - - [2023-12-05 02:55:40.12s] Waiting for a connection..  
+ - - [2023-12-05 03:15:18.12s] Server listening on port 8080  
+ - - [2023-12-05 03:15:18.12s] Waiting for a connection..  
+ - - [2023-12-05 03:15:47.12s] Server listening on port 8080  
+ - - [2023-12-05 03:15:47.12s] Waiting for a connection..  
+ - - [2023-12-05 06:07:53.12s] Server listening on port 8080  
+ - - [2023-12-05 06:07:53.12s] Waiting for a connection..  
+ - - [2023-12-05 06:46:27.12s] Server listening on port 8080  
+ - - [2023-12-05 06:46:27.12s] Waiting for a connection..  
+ - - [2023-12-05 06:48:10.12s] Server listening on port 8080  
+ - - [2023-12-05 06:48:10.12s] Waiting for a connection..  
+ - - [2023-12-05 06:48:29.12s] Server listening on port 8080  
+ - - [2023-12-05 06:48:29.12s] Waiting for a connection..  
+ - - [2023-12-05 06:50:01.12s] Server listening on port 8080  
+ - - [2023-12-05 06:50:01.12s] Waiting for a connection..  
+ - - [2023-12-05 06:51:39.12s] Server listening on port 8080  
+ - - [2023-12-05 06:51:40.12s] Waiting for a connection..  
+ - - [2023-12-05 06:54:39.12s] Server listening on port 8080  
+ - - [2023-12-05 06:54:39.12s] Waiting for a connection..  
+ - - [2023-12-05 06:55:13.12s] Server listening on port 8080  
+ - - [2023-12-05 06:55:14.12s] Waiting for a connection..  
+ - - [2023-12-05 06:56:09.12s] Server listening on port 8080  
+ - - [2023-12-05 06:56:10.12s] Waiting for a connection..  
+ - - [2023-12-05 06:57:07.12s] Server listening on port 8080  
+ - - [2023-12-05 06:57:07.12s] Waiting for a connection..  
+ - - [2023-12-05 06:57:20.12s] Server listening on port 8080  
+ - - [2023-12-05 06:57:20.12s] Waiting for a connection..  
+ - - [2023-12-05 06:57:48.12s] bind failed  
+ - - [2023-12-05 06:58:13.12s] Server listening on port 8080  
+ - - [2023-12-05 06:58:13.12s] Waiting for a connection..  
+ - - [2023-12-05 06:58:32.12s] Server listening on port 8080  
+ - - [2023-12-05 06:58:32.12s] Waiting for a connection..  
+ - - [2023-12-05 06:59:06.12s] Server listening on port 8080  
+ - - [2023-12-05 06:59:06.12s] Waiting for a connection..  
+ - - [2023-12-05 06:59:17.12s] Waiting for a connection..  
+ - - [2023-12-05 07:00:27.12s] Server listening on port 8080  
+ - - [2023-12-05 07:00:27.12s] Waiting for a connection..  
+ - - [2023-12-05 07:00:30.12s] Waiting for a connection..  
+127.0.0.1 - - [2023-12-05 07:00:42.12s] GET / HTTP/1.1
+Host: localhost
+Connection: close
+
+lose
+
+ /index.html 200
+ - - [2023-12-05 07:00:42.12s] Waiting for a connection..  
+ - - [2023-12-05 07:03:19.12s] bind failed  
+ - - [2023-12-05 07:03:22.12s] Waiting for a connection..  
+ - - [2023-12-05 07:05:27.12s] Server listening on port 8080  
+ - - [2023-12-05 07:05:27.12s] Waiting for a connection..  
+127.0.0.1 - - [2023-12-05 07:05:35.12s] GET / HTTP/1.1
+Host: localhost:8080
+User-Agent: curl/7.81.0
+Accept: */*
+
+ /index.html ÃL>>
+ - - [2023-12-05 07:05:35.12s] Waiting for a connection..  
+127.0.0.1 - - [2023-12-05 07:05:41.12s] GET /hello.cgi HTTP/1.1
+Host: localhost:8080
+User-Agent: curl/7.81.0
+Accept: */*
+
+ /hello.cgi 200
+ - - [2023-12-05 07:05:41.12s] Waiting for a connection..  
+ - - [2023-12-05 07:05:46.12s] Waiting for a connection..  
+ - - [2023-12-05 07:10:47.12s] Server listening on port 8080  
+ - - [2023-12-05 07:10:48.12s] Waiting for a connection..  
+ - - [2023-12-05 07:15:47.12s] Server listening on port 8080  
+ - - [2023-12-05 07:15:47.12s] Waiting for a connection..  
+ - - [2023-12-05 07:15:49.12s] Waiting for a connection..  
+ - - [2023-12-05 07:17:14.12s] Server listening on port 8080  
+ - - [2023-12-05 07:17:14.12s] Waiting for a connection..  
+ - - [2023-12-05 07:17:16.12s] Waiting for a connection..  
